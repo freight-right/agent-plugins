@@ -6,11 +6,13 @@
 
 <p>Price, quote, book and track international freight from your AI assistant.</p>
 
+<p><b>Claude Code · Codex · GitHub Copilot CLI · Cursor · Grok</b></p>
+
 <p>
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-1e3063">
   <img alt="Model Context Protocol" src="https://img.shields.io/badge/MCP-streamable%20HTTP-1e3063">
   <img alt="Auth: OAuth 2.1 + PKCE" src="https://img.shields.io/badge/auth-OAuth%202.1%20%2B%20PKCE-1e3063">
-  <img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude%20Code-plugin-1e3063">
+  <img alt="Clients: Claude Code, Codex, Copilot CLI, Cursor, Grok" src="https://img.shields.io/badge/clients-Claude%20Code%20%7C%20Codex%20%7C%20Copilot%20%7C%20Cursor%20%7C%20Grok-1e3063">
 </p>
 
 </div>
@@ -113,7 +115,9 @@ install with no URL to paste.
 | Cursor 2.2.44 | Verified | Verified |
 | Grok 1.0.40 | Verified | Verified |
 
-Each client reads its own manifest — none is made to fall through to another vendor's path.
+Each client is given a manifest at the path it looks for, rather than being made to fall through to another
+vendor's directory. Grok is the exception that proves the point: it reads the open
+[Agent Plugins](https://agent-plugins.org) manifest, so it needs nothing of its own.
 
 No client has yet completed an OAuth sign-in against the connector, because the production URL this plugin ships
 goes live with the production service. Installing and using the skills is what the table reports.
