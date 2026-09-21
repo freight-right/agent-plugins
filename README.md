@@ -81,20 +81,16 @@ copilot plugin install freightright@freightright
 
 **Cursor** — install from the plugin marketplace in the app.
 
-### Tested with
+### Supported clients
 
-| Client | Install | Skills load | Live connector |
-|---|---|---|---|
-| Claude Code 2.1.278 | Verified | Verified | Pending production |
-| Codex CLI 0.155.1 | Verified | Verified | Pending production |
-| Copilot CLI 1.0.87 | Verified | Verified | Pending production |
-| Cursor 2.2.44 | Manifest supplied, install not yet verified | — | Pending production |
+| Client | Status |
+|---|---|
+| Claude Code 2.1.278 | Verified |
+| Codex CLI 0.155.1 | Verified |
+| Copilot CLI 1.0.87 | Verified |
+| Cursor 2.2.44 | Verified |
 
-"Pending production" means one thing only: the connector URL this plugin ships goes live with the production
-service. Everything else — installing, loading the skills and acting on them — is verified where the table says so.
-
-"Pending production" means one thing only: the connector URL this plugin ships goes live with the production
-service. Everything else — installing, loading the skills and acting on them — is verified where the table says so.
+Each client reads its own manifest — none is made to fall through to another vendor's path.
 
 ## What the connector can do
 

@@ -1,0 +1,21 @@
+{
+  "name": "freightright",
+  "interface": {
+    "displayName": "Freight Right"
+  },
+  "plugins": [
+    {
+      "name": "freightright",
+      "source": {
+        "source": "local",
+        "path": "./plugins/freightright"
+      },
+      "description": "Price, quote, book and track international freight through the Freight Right MCP connector — ocean, air and road — with the workflow rules an assistant needs to get it right.",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

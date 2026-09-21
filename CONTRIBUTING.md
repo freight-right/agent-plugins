@@ -15,19 +15,29 @@ plugins/freightright/
 assets/                           images for this README only; they are not part of an install
 ```
 
-### Why there are two marketplace files
+### Why there are four marketplace files
 
-Neither is redundant. Established by deleting each and watching what broke:
+Every client gets **its own** manifest, at the path that client looks for first. None is made to fall through to
+another vendor's directory — a fall-through is a dependency on someone else's search order, and it changes without
+notice. The shared `.claude-plugin/` file stays as well, because several clients read it happily and some people
+prefer installing that way.
 
-| Client | Reads |
-|---|---|
-| Claude Code | `.claude-plugin/marketplace.json` |
-| Codex CLI | `.claude-plugin/marketplace.json`, directly |
-| Copilot CLI | Searches `marketplace.json`, `.plugin/`, `.github/plugin/`, then `.claude-plugin/` — the Claude file serves it |
-| Cursor | **Only** `.cursor-plugin/marketplace.json`, with `description` and `version` under `metadata` rather than at the top level |
+| Client | Marketplace | Plugin manifest |
+|---|---|---|
+| Claude Code | `.claude-plugin/marketplace.json` | `.claude-plugin/plugin.json` |
+| Codex CLI | `.agents/plugins/marketplace.json` | `.codex-plugin/plugin.json` |
+| Copilot CLI | `.github/plugin/marketplace.json` | root `plugin.json` |
+| Cursor | `.cursor-plugin/marketplace.json` | `.cursor-plugin/plugin.json` |
 
-Delete `.cursor-plugin/marketplace.json` and Cursor cannot see this plugin at all. The validator compares the two
-files on **meaning**, through an explicit mapping, because requiring the same field *placement* would be wrong.
+Established by deleting files and reading what each client complained about, not by assumption:
+
+- **Codex** rejects `.codex-plugin/` for the *marketplace* — that path is only for the plugin manifest. Without
+  `.agents/plugins/marketplace.json` it falls through and will even pick up Cursor's file.
+- **Copilot CLI** searches `marketplace.json`, `.plugin/`, `.github/plugin/`, then `.claude-plugin/`.
+- **Cursor** reads `.cursor-plugin/marketplace.json` only, and nests `description`/`version` under `metadata`.
+
+Each shape differs, so the validator compares what the files **mean** through one accessor per client, never by
+requiring the same field placement. Adding a client means adding a row to `MARKETPLACES` in `scripts/validate.mjs`.
 
 Two rules that are easy to get wrong:
 

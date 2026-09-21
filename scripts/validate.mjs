@@ -55,64 +55,98 @@ const need = (path) => {
   return json.get(path);
 };
 
-// ---------------------------------------------------------------- the manifests agree
+// ------------------------------------------------- every client's manifest says the same thing, in its own shape
+// Each client is given its OWN file rather than being made to fall through to another vendor's path, and the shared
+// `.claude-plugin/` file is kept because several clients happily read it. That means one fact lives in eight places,
+// so the check below is the thing that makes it safe: compare what each file MEANS, through an explicit accessor per
+// client, never by requiring the same field placement — Cursor nests under `metadata`, Codex under `interface`.
+
 const portable = need(`${PLUGIN}/plugin.json`);
-const claude = need(`${PLUGIN}/.claude-plugin/plugin.json`);
 const marketplace = need('.claude-plugin/marketplace.json');
 
-if (portable && claude) {
-  for (const field of SHARED_MANIFEST_FIELDS) {
-    if (JSON.stringify(portable[field]) !== JSON.stringify(claude[field])) {
-      fail('manifests', `\`${field}\` differs between the portable and Claude manifests`);
-    }
-  }
-  if (JSON.stringify(portable.keywords) !== JSON.stringify(claude.keywords)) {
-    fail('manifests', '`keywords` differ between the portable and Claude manifests');
-  }
-  if (JSON.stringify(portable.author) !== JSON.stringify(claude.author)) {
-    fail('manifests', '`author` differs between the portable and Claude manifests');
-  }
-  // Each client reads its own shape; only the editor schema hint may differ between these two files.
-  const extra = Object.keys(claude).filter((k) => !(k in portable) && k !== '$schema');
-  if (extra.length) fail('manifests', `the Claude manifest has unexpected extra fields: ${extra.join(', ')}`);
-}
+const PLUGIN_MANIFESTS = [
+  ['.claude-plugin', need(`${PLUGIN}/.claude-plugin/plugin.json`)],
+  ['.cursor-plugin', need(`${PLUGIN}/.cursor-plugin/plugin.json`)],
+  ['.codex-plugin', need(`${PLUGIN}/.codex-plugin/plugin.json`)],
+];
 
-if (marketplace) {
-  if (marketplace.name !== SERVER_KEY) fail('marketplace.json', `name must be "${SERVER_KEY}"`);
-  if (!marketplace.owner?.name) fail('marketplace.json', 'owner.name is required');
-  const entries = marketplace.plugins ?? [];
-  if (entries.length !== 1) fail('marketplace.json', 'expected exactly one plugin entry');
-  const [entry] = entries;
-  if (entry) {
-    if (entry.name !== portable?.name) fail('marketplace.json', 'the entry name must match the plugin name');
-    if (entry.source !== `./${PLUGIN}`) fail('marketplace.json', `the entry source must be "./${PLUGIN}"`);
-    // The version is pinned in plugin.json alone; repeating it here doubles the bookkeeping for no gain.
-    if ('version' in entry) fail('marketplace.json', 'do not set version on the entry — plugin.json owns it');
+for (const [where, manifest] of PLUGIN_MANIFESTS) {
+  if (!manifest || !portable) continue;
+  for (const field of [...SHARED_MANIFEST_FIELDS, 'keywords', 'author']) {
+    if (JSON.stringify(portable[field]) !== JSON.stringify(manifest[field])) {
+      fail(`${where}/plugin.json`, `\`${field}\` differs from the portable manifest`);
+    }
   }
 }
 
-// Cursor reads its own marketplace file and puts `description`/`version` under `metadata`, where Claude Code has
-// them at the top level. Requiring the same field PLACEMENT would encode a falsehood, so compare what they MEAN.
-const cursorMarket = need('.cursor-plugin/marketplace.json');
-if (marketplace && cursorMarket) {
-  const MEANING = [
-    ['name', (m) => m.name, (c) => c.name],
-    ['owner.name', (m) => m.owner?.name, (c) => c.owner?.name],
-    ['description', (m) => m.description, (c) => c.metadata?.description],
-    ['version', (m) => m.version, (c) => c.metadata?.version],
-    ['entry', (m) => JSON.stringify(m.plugins?.[0]), (c) => JSON.stringify(c.plugins?.[0])],
-  ];
-  for (const [what, fromClaude, fromCursor] of MEANING) {
-    if (JSON.stringify(fromClaude(marketplace)) !== JSON.stringify(fromCursor(cursorMarket))) {
-      fail('marketplaces', `Claude and Cursor disagree about ${what}`);
+// Codex's presentation block is its own shape, so it is checked against what it is supposed to restate.
+const codexPlugin = PLUGIN_MANIFESTS.find(([w]) => w === '.codex-plugin')?.[1];
+if (codexPlugin && portable) {
+  if (codexPlugin.interface?.displayName !== portable.displayName) {
+    fail('.codex-plugin/plugin.json', 'interface.displayName must match displayName');
+  }
+  if (codexPlugin.interface?.longDescription !== portable.description) {
+    fail('.codex-plugin/plugin.json', 'interface.longDescription must match description');
+  }
+}
+
+// The marketplaces. `read` is how that client's file states each fact; a missing accessor means it does not carry it.
+const MARKETPLACES = [
+  {
+    where: '.claude-plugin/marketplace.json', client: 'Claude Code',
+    read: { name: (m) => m.name, owner: (m) => m.owner?.name, description: (m) => m.description,
+            version: (m) => m.version, entryName: (m) => m.plugins?.[0]?.name,
+            entryDescription: (m) => m.plugins?.[0]?.description, source: (m) => m.plugins?.[0]?.source },
+  },
+  {
+    where: '.github/plugin/marketplace.json', client: 'Copilot CLI',
+    read: { name: (m) => m.name, owner: (m) => m.owner?.name, description: (m) => m.description,
+            version: (m) => m.version, entryName: (m) => m.plugins?.[0]?.name,
+            entryDescription: (m) => m.plugins?.[0]?.description, source: (m) => m.plugins?.[0]?.source },
+  },
+  {
+    where: '.cursor-plugin/marketplace.json', client: 'Cursor',
+    read: { name: (m) => m.name, owner: (m) => m.owner?.name, description: (m) => m.metadata?.description,
+            version: (m) => m.metadata?.version, entryName: (m) => m.plugins?.[0]?.name,
+            entryDescription: (m) => m.plugins?.[0]?.description, source: (m) => m.plugins?.[0]?.source },
+  },
+  {
+    // Codex's schema carries no marketplace-level owner, description or version — only the entry's. A fact a
+    // client does not state is simply not listed here, rather than asserted against nothing.
+    where: '.agents/plugins/marketplace.json', client: 'Codex',
+    read: { name: (m) => m.name, entryName: (m) => m.plugins?.[0]?.name,
+            entryDescription: (m) => m.plugins?.[0]?.description,
+            source: (m) => m.plugins?.[0]?.source?.path },
+  },
+];
+
+const truth = {
+  name: SERVER_KEY,
+  owner: 'Freight Right',
+  description: marketplace?.description,
+  version: marketplace?.version,
+  entryName: portable?.name,
+  entryDescription: marketplace?.plugins?.[0]?.description,
+  source: `./${PLUGIN}`,
+};
+
+for (const { where, client, read } of MARKETPLACES) {
+  const file = need(where);
+  if (!file) continue;
+  for (const [fact, accessor] of Object.entries(read)) {
+    if (JSON.stringify(accessor(file)) !== JSON.stringify(truth[fact])) {
+      fail(where, `${client} states a different ${fact} from the others`);
     }
   }
-  if (cursorMarket.version !== undefined) {
-    fail('.cursor-plugin/marketplace.json', 'Cursor carries version under `metadata`, not at the top level');
+  if (file.plugins?.length !== 1) fail(where, 'expected exactly one plugin entry');
+  // Version is pinned in plugin.json alone; repeating it per entry doubles the bookkeeping at every release.
+  if (file.plugins?.[0] && 'version' in file.plugins[0]) {
+    fail(where, 'do not set version on the entry — plugin.json owns it');
   }
-  if (portable && cursorMarket.metadata?.version !== portable.version) {
-    fail('.cursor-plugin/marketplace.json', 'metadata.version must match the plugin version');
-  }
+}
+
+if (marketplace?.version !== portable?.version) {
+  fail('.claude-plugin/marketplace.json', 'marketplace version must match the plugin version');
 }
 
 // ---------------------------------------------------------------- the connector URL, exactly
@@ -265,7 +299,7 @@ for (const path of files.filter((p) => p.endsWith('.md'))) {
     if (!existsSync(join(ROOT, base, href))) fail(path, `references a missing asset: ${href}`);
   }
 }
-for (const manifest of [portable, claude]) {
+for (const manifest of [portable, ...PLUGIN_MANIFESTS.map(([, m]) => m)]) {
   const logo = manifest?.logo;
   if (logo && !existsSync(join(ROOT, PLUGIN, logo))) {
     fail('plugin.json', `logo ${logo} must exist inside ${PLUGIN} — repository-root assets are not installed`);

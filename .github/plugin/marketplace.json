@@ -1,0 +1,17 @@
+{
+  "name": "freightright",
+  "owner": {
+    "name": "Freight Right",
+    "url": "https://www.freightright.com"
+  },
+  "description": "Agent plugins for the Freight Right freight forwarding platform.",
+  "version": "0.1.0",
+  "plugins": [
+    {
+      "name": "freightright",
+      "source": "./plugins/freightright",
+      "description": "Price, quote, book and track international freight through the Freight Right MCP connector — ocean, air and road — with the workflow rules an assistant needs to get it right.",
+      "category": "productivity"
+    }
+  ]
+}
