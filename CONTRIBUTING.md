@@ -13,6 +13,7 @@ plugins/freightright/
   skills/<name>/SKILL.md          one skill per user intent
   evals/                          cases, graders and mocks
 assets/                           images for this README only; they are not part of an install
+assets/github/                    imagery GitHub itself shows; neither can be set through the API
 ```
 
 ### Why there are four marketplace files
@@ -48,6 +49,19 @@ Two rules that are easy to get wrong:
 - Only `plugin.json` belongs inside `.claude-plugin/`. Everything else sits at the plugin root.
 - An asset referenced by an installed manifest must live under `plugins/freightright/assets/`. Repository-root
   assets render on GitHub but are absent from an installed plugin's cached directory.
+
+### GitHub imagery
+
+`assets/github/` holds the two images GitHub renders around the repository. **Neither is settable through the REST
+API or `gh`** — both are web-UI uploads, so they live here to stay versioned and reproducible.
+
+| File | Where it goes |
+|---|---|
+| `avatar-512.png` | Organisation avatar — github.com/organizations/freight-right/settings/profile. This is the icon shown beside every repository in the org; the default is a generated identicon |
+| `social-preview.png` | Repository → Settings → General → Social preview. 1280×640, shown when the link is shared |
+
+Both are regenerated from the real brand assets: the wordmark from `fr-auth-frontend/src/assets/headerLogo.svg` in
+the brand primary `#1E3063`, on white. Blue and white only.
 
 ## Principles
 
