@@ -1,9 +1,6 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-  <img alt="Freight Right" src="assets/logo-light.svg" width="260">
-</picture>
+<img alt="Freight Right" src="assets/logo.svg" width="260">
 
 <h1>Freight Right agent plugins</h1>
 
@@ -98,21 +95,23 @@ shipment milestone semantics, and guides to querying and to pricing — plus rea
 
 <table>
 <tr>
-<td align="center" width="100"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/icons/ocean-dark.svg"><img src="assets/icons/ocean.svg" width="30" alt=""></picture><br><b>FCL</b></td>
-<td align="center" width="100"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/icons/lcl-dark.svg"><img src="assets/icons/lcl.svg" width="30" alt=""></picture><br><b>LCL</b></td>
-<td align="center" width="100"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/icons/air-dark.svg"><img src="assets/icons/air.svg" width="30" alt=""></picture><br><b>AIR</b></td>
-<td align="center" width="100"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/icons/ltl-dark.svg"><img src="assets/icons/ltl.svg" width="30" alt=""></picture><br><b>LTL</b></td>
-<td align="center" width="100"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/icons/ftl-dark.svg"><img src="assets/icons/ftl.svg" width="30" alt=""></picture><br><b>FTL</b></td>
+<td align="center" width="100"><img src="assets/icons/ocean.svg" width="32" height="32" alt=""><br><b>FCL</b></td>
+<td align="center" width="100"><img src="assets/icons/lcl.svg" width="32" height="32" alt=""><br><b>LCL</b></td>
+<td align="center" width="100"><img src="assets/icons/air.svg" width="32" height="32" alt=""><br><b>AIR</b></td>
+<td align="center" width="100"><img src="assets/icons/ltl.svg" width="32" height="32" alt=""><br><b>LTL</b></td>
+<td align="center" width="100"><img src="assets/icons/ftl.svg" width="32" height="32" alt=""><br><b>FTL</b></td>
 </tr>
 </table>
 
-| Mode | | Priced by | Instant price? |
-|---|---|---|---|
-| **FCL** | A full container by sea | Containers — type and quantity | Yes. Hazardous or temperature-controlled cargo goes to a quote request |
-| **LCL** | Part of a container by sea | Groups of identical pieces, or shipment totals | Yes, including hazardous and temperature-controlled |
-| **AIR** | Air freight | Groups of identical pieces, or shipment totals | Yes, including hazardous and temperature-controlled |
-| **LTL** | Pallets or crates by road, US and Canada | Groups of identical pieces, door to door | Yes, including hazardous. Temperature control goes to a quote request |
-| **FTL** | A full truck, US, Canada and Mexico | Equipment as container sizes | No — always a quote request |
+| Mode | | Priced by |
+|---|---|---|
+| **FCL** | A full container by sea | Containers — type and quantity |
+| **LCL** | Part of a container by sea | Groups of identical pieces, or shipment totals |
+| **AIR** | Air freight | Groups of identical pieces, or shipment totals |
+| **LTL** | Pallets or crates by road, US and Canada | Groups of identical pieces, door to door |
+| **FTL** | A full truck, US, Canada and Mexico | Equipment as container sizes |
+
+FCL, LCL, AIR and LTL are priced instantly. **FTL always goes to Freight Right's pricing team**, as does hazardous or temperature-controlled cargo on FCL, and temperature-controlled cargo on LTL.
 
 Insurance is a declared value in USD and exists on FCL, LCL and AIR only. On LTL and FTL, ask for it in a quote
 request note.

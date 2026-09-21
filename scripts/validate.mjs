@@ -23,7 +23,8 @@ const read = (path) => readFileSync(join(ROOT, path), 'utf8');
 function walk(dir, out = []) {
   if (!existsSync(join(ROOT, dir))) return out;
   for (const entry of readdirSync(join(ROOT, dir))) {
-    if (entry === 'node_modules' || entry === '.git') continue;
+    // `results/` is eval output: gitignored, machine-written, and none of this repository's business.
+    if (entry === 'node_modules' || entry === '.git' || entry === 'results') continue;
     const path = join(dir, entry);
     if (statSync(join(ROOT, path)).isDirectory()) walk(path, out);
     else out.push(path);
