@@ -65,12 +65,26 @@ a slow lane genuinely takes that long.
 > (`claude mcp remove freight-right`). Two copies of the same connector means two OAuth sessions, two tool prefixes
 > and two different tool inventories, and the assistant will not know which to use.
 
+**Codex**
+
+```sh
+codex plugin marketplace add freight-right/agent-plugins
+codex plugin add freightright@freightright
+```
+
+**Cursor** — install from the plugin marketplace in the app.
+
 ### Tested with
 
-| Client | Status |
-|---|---|
-| Claude Code 2.1.278 | Supported and verified |
-| Cursor, Codex, Copilot CLI | Not yet verified — planned. The skill files themselves are portable |
+| Client | Install | Skills load | Live connector |
+|---|---|---|---|
+| Claude Code 2.1.278 | Verified | Verified | Pending production |
+| Codex CLI 0.155.1 | Verified | Verified | Pending production |
+| Cursor 2.2.44 | Manifest supplied, install not yet verified | — | Pending production |
+| Copilot CLI | Installs through the Claude marketplace; not yet verified | — | Pending production |
+
+"Pending production" means one thing only: the connector URL this plugin ships goes live with the production
+service. Everything else — installing, loading the skills and acting on them — is verified where the table says so.
 
 ## What the connector can do
 

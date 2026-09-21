@@ -91,6 +91,30 @@ if (marketplace) {
   }
 }
 
+// Cursor reads its own marketplace file and puts `description`/`version` under `metadata`, where Claude Code has
+// them at the top level. Requiring the same field PLACEMENT would encode a falsehood, so compare what they MEAN.
+const cursorMarket = need('.cursor-plugin/marketplace.json');
+if (marketplace && cursorMarket) {
+  const MEANING = [
+    ['name', (m) => m.name, (c) => c.name],
+    ['owner.name', (m) => m.owner?.name, (c) => c.owner?.name],
+    ['description', (m) => m.description, (c) => c.metadata?.description],
+    ['version', (m) => m.version, (c) => c.metadata?.version],
+    ['entry', (m) => JSON.stringify(m.plugins?.[0]), (c) => JSON.stringify(c.plugins?.[0])],
+  ];
+  for (const [what, fromClaude, fromCursor] of MEANING) {
+    if (JSON.stringify(fromClaude(marketplace)) !== JSON.stringify(fromCursor(cursorMarket))) {
+      fail('marketplaces', `Claude and Cursor disagree about ${what}`);
+    }
+  }
+  if (cursorMarket.version !== undefined) {
+    fail('.cursor-plugin/marketplace.json', 'Cursor carries version under `metadata`, not at the top level');
+  }
+  if (portable && cursorMarket.metadata?.version !== portable.version) {
+    fail('.cursor-plugin/marketplace.json', 'metadata.version must match the plugin version');
+  }
+}
+
 // ---------------------------------------------------------------- the connector URL, exactly
 const mcp = need(`${PLUGIN}/.mcp.json`);
 if (mcp) {
