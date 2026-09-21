@@ -72,6 +72,13 @@ codex plugin marketplace add freight-right/agent-plugins
 codex plugin add freightright@freightright
 ```
 
+**GitHub Copilot CLI**
+
+```sh
+copilot plugin marketplace add freight-right/agent-plugins
+copilot plugin install freightright@freightright
+```
+
 **Cursor** — install from the plugin marketplace in the app.
 
 ### Tested with
@@ -80,8 +87,11 @@ codex plugin add freightright@freightright
 |---|---|---|---|
 | Claude Code 2.1.278 | Verified | Verified | Pending production |
 | Codex CLI 0.155.1 | Verified | Verified | Pending production |
+| Copilot CLI 1.0.87 | Verified | Verified | Pending production |
 | Cursor 2.2.44 | Manifest supplied, install not yet verified | — | Pending production |
-| Copilot CLI | Installs through the Claude marketplace; not yet verified | — | Pending production |
+
+"Pending production" means one thing only: the connector URL this plugin ships goes live with the production
+service. Everything else — installing, loading the skills and acting on them — is verified where the table says so.
 
 "Pending production" means one thing only: the connector URL this plugin ships goes live with the production
 service. Everything else — installing, loading the skills and acting on them — is verified where the table says so.

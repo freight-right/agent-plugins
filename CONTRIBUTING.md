@@ -15,6 +15,20 @@ plugins/freightright/
 assets/                           images for this README only; they are not part of an install
 ```
 
+### Why there are two marketplace files
+
+Neither is redundant. Established by deleting each and watching what broke:
+
+| Client | Reads |
+|---|---|
+| Claude Code | `.claude-plugin/marketplace.json` |
+| Codex CLI | `.claude-plugin/marketplace.json`, directly |
+| Copilot CLI | Searches `marketplace.json`, `.plugin/`, `.github/plugin/`, then `.claude-plugin/` — the Claude file serves it |
+| Cursor | **Only** `.cursor-plugin/marketplace.json`, with `description` and `version` under `metadata` rather than at the top level |
+
+Delete `.cursor-plugin/marketplace.json` and Cursor cannot see this plugin at all. The validator compares the two
+files on **meaning**, through an explicit mapping, because requiring the same field *placement* would be wrong.
+
 Two rules that are easy to get wrong:
 
 - Only `plugin.json` belongs inside `.claude-plugin/`. Everything else sits at the plugin root.
