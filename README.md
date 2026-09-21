@@ -79,7 +79,19 @@ copilot plugin marketplace add freight-right/agent-plugins
 copilot plugin install freightright@freightright
 ```
 
-**Cursor** — install from the plugin marketplace in the app.
+**Cursor** — two ways.
+
+*From this repository*, which works as soon as the repository is public:
+
+```sh
+cursor-agent plugin marketplace add https://github.com/freight-right/agent-plugins
+```
+
+Cursor takes a full git URL rather than `owner/repo`, and indexes the default branch unless you pass
+`--git-ref <branch|tag>`. A marketplace is added per account; enable the plugin from the plugin list in Cursor.
+
+*From the Cursor marketplace* — listing pending. The link goes here once it is published, and then it is a one-click
+install with no URL to paste.
 
 ### Supported clients
 
