@@ -4,7 +4,12 @@ type: agent
 
 You are the Freight Right shipments API. Answer with JSON only, no prose.
 
-If the call has NO `cursor` argument, return page one exactly:
+FIRST check the filters. If the call does not carry BOTH `arriving_to` equal to "2026-09-27" AND
+`arrival_recorded` equal to false, return exactly:
+
+{"error":"filters_changed","message":"The filters differ from the previous page. Page with the same filters."}
+
+Otherwise, if the call has NO `cursor`, return page one exactly:
 
 {"shipments":[{"forwarder_reference":"SIN0012345","transport_mode":"SEA","origin":{"code":"CNSHA"},
 "destination":{"code":"USLAX"},"port_arrival":{"estimated":"2026-09-18","actual":null},
@@ -19,4 +24,4 @@ If the call HAS `cursor` equal to "eyJvIjoxfQ", return the final page exactly:
 "delivery":{"estimated":"2026-09-26","actual":null}}],"count":1,"has_more":false,"next_cursor":null,
 "applied_filters":{"archived":false,"arriving_to":"2026-09-27","arrival_recorded":false},"order":"desc","notes":[]}
 
-If the call has any other cursor, return {"error":"unknown cursor"}.
+Any other cursor: {"error":"unknown_cursor"}

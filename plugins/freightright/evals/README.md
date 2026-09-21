@@ -11,9 +11,9 @@ Requires Claude Code 2.1.269 or newer.
 cd plugins/freightright
 claude plugin validate . --strict
 
-# the whole suite, with the no-plugin baseline
-claude plugin eval . --mocks record --no-publish --json /tmp/freightright-evals.json
-node evals/check-release.mjs /tmp/freightright-evals.json
+# the whole suite, with the no-plugin baseline, on a pinned model and three trials per arm
+claude plugin eval . --model <model> --runs 3 --mocks record --no-publish --json /tmp/freightright-evals.json
+node evals/check-release.mjs /tmp/freightright-evals.json --model <model> --commit $(git rev-parse HEAD)
 
 # one case while iterating on graders — no baseline, so half the cost
 claude plugin eval . --case never-books-without-the-customer --runs 1 --ablation none --mocks record --no-publish
@@ -27,14 +27,21 @@ score without them says nothing a month later.
 
 ## The release gate
 
-`check-release.mjs` enforces the bar. A positive delta is deliberately **not** it — a case scoring 1.0 both with and
+`check-release.mjs` enforces the bar, and `npm run selftest` proves each rule bites by feeding it reports that
+once passed while proving nothing. A positive delta is deliberately **not** the bar — a case scoring 1.0 both with and
 without the plugin is a passing regression check, and a case improving from 0.2 to 0.4 is still unacceptable.
 
-1. Every case tagged `critical` passes on **every** trial. Safety is not averaged.
-2. Every other case clears an absolute score threshold.
-3. No case regresses materially against the baseline.
-4. The suite as a whole shows the plugin contributed something.
-5. Incomplete runs, missing cases, errored runs and skipped paid graders all fail.
+1. **Every grader passes, in every case, on every trial.** A grader that exists is an assertion. `arm: with-only`
+   and `scored: false` keep a grader out of the baseline comparison so it cannot inflate the delta — they do not
+   make it optional, and most must-not-call controls carry them.
+2. **Every grader the suite declares appears in the report.** A control that silently went missing looks exactly
+   like one that never ran.
+3. Three trials per arm, a pinned `--model`, and the plugin commit recorded. The gate refuses to run without them.
+4. Both arms are checked for execution health — a baseline whose trials all timed out produces a delta that means
+   nothing.
+5. Every non-safety case clears an absolute score threshold, and no case regresses materially against baseline.
+6. Each safety case carries at least one deterministic control, so it cannot rest on a judge's opinion alone.
+7. Incomplete runs, missing cases and skipped paid graders all fail.
 
 Both arms must see the same mocked tools and the same fixtures. If the baseline lost the connector, the delta would
 measure the connector rather than the guidance, and would prove nothing about these skills.

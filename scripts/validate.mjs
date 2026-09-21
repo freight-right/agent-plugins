@@ -189,8 +189,18 @@ if (mcp) {
 
 // The portable component path is `mcp.json` with transport `streamable-http`; the native one is `.mcp.json` with
 // `http`. Different spellings of the same server — so check they still describe the same server.
+const PORTABLE_MCP_SCHEMA = 'https://agent-plugins.org/schemas/1.0.0/mcp.schema.json';
 const portableMcp = need(`${PLUGIN}/mcp.json`);
 if (portableMcp) {
+  // Both portable files are schema-identified; the native client validators do not check portable conformance.
+  if (portableMcp.$schema !== PORTABLE_MCP_SCHEMA) {
+    fail(`${PLUGIN}/mcp.json`, `$schema must be ${PORTABLE_MCP_SCHEMA}`);
+  }
+  for (const key of Object.keys(portableMcp)) {
+    if (!['$schema', 'mcpServers'].includes(key)) {
+      fail(`${PLUGIN}/mcp.json`, `\`${key}\` is not permitted; the schema allows $schema and mcpServers`);
+    }
+  }
   const server = portableMcp.mcpServers?.[SERVER_KEY];
   if (!server) fail(`${PLUGIN}/mcp.json`, `expected a server named "${SERVER_KEY}"`);
   else {
@@ -198,6 +208,11 @@ if (portableMcp) {
       fail(`${PLUGIN}/mcp.json`, 'the portable format names this transport "streamable-http"');
     }
     if (server.url !== CONNECTOR_URL) fail(`${PLUGIN}/mcp.json`, `url must be exactly ${CONNECTOR_URL}`);
+    for (const key of Object.keys(server)) {
+      if (!['type', 'url', 'headers'].includes(key)) {
+        fail(`${PLUGIN}/mcp.json`, `server field \`${key}\` is not in the portable schema`);
+      }
+    }
   }
 }
 

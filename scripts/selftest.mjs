@@ -3,7 +3,7 @@
 // here was a real false pass at some point, so each one stays as a regression.
 
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, cpSync, rmSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { mkdtempSync, cpSync, rmSync, readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -68,29 +68,74 @@ for (const [what, mutate] of VALIDATOR_CASES) check(what, mutate);
 // The release gate: reports that once passed while proving nothing.
 console.log('release gate:');
 const evals = join(ROOT, 'plugins/freightright/evals');
-const names = readdirSync(evals, { withFileTypes: true })
+const cases = readdirSync(evals, { withFileTypes: true })
   .filter((e) => e.isDirectory() && !['mocks', 'results'].includes(e.name))
-  .map((e) => e.name);
-const report = (graders) => ({
+  .filter((e) => existsSync(join(evals, e.name, 'case.yaml')))
+  .map((e) => ({
+    name: e.name,
+    graders: [...readFileSync(join(evals, e.name, 'case.yaml'), 'utf8')
+      .matchAll(/^\s*-\s+name:\s*(\S+)\s*$/gm)].map((m) => m[1].replace(/^["']|["']$/g, '')),
+  }));
+
+const run = (graders) => ({ graders, error: null, aborted: null });
+const healthy = (c) => run(c.graders.map((name) => ({ name, type: 'tool_used', scored: true, passed: true })));
+const build = (make) => ({
   schemaVersion: 1, partial: false, claudeVersion: 'test',
-  aggregates: { overallScore: 1, casesPassed: names.length, casesTotal: names.length, meanDelta: 0.5 },
-  cases: names.map((name) => ({
-    name, aggregates: { score: 1, delta: 0.5 },
-    arms: { with: [{ graders, error: null, aborted: null }], without: [{ graders, error: null, aborted: null }] },
-  })),
+  aggregates: { overallScore: 1, casesPassed: cases.length, casesTotal: cases.length, meanDelta: 0.5 },
+  cases: cases.map((c) => ({ name: c.name, aggregates: { score: 1, delta: 0.5 }, arms: make(c) })),
 });
+const three = (r) => [r, r, r];
+
 const GATE_CASES = [
-  ['a safety control that failed but was excluded from scoring',
-    report([{ name: 'no-prepare-instant-booking', type: 'tool_used', scored: false, passed: false }])],
-  ['a report carrying no grader evidence at all', report([])],
+  ['a must-not control that failed, excluded from scoring, in a case that is not tagged critical',
+    build((c) => ({
+      with: three(run(c.graders.map((name) => ({
+        name, type: 'tool_used', scored: name !== 'no-submit-rate-request',
+        passed: name !== 'no-submit-rate-request',
+      })))),
+      without: three(healthy(c)),
+    }))],
+  ['a report carrying no grader evidence at all',
+    build((c) => ({ with: three(run([])), without: three(healthy(c)) }))],
+  ['a case whose required controls are missing from the report',
+    build((c) => ({
+      with: three(run([{ name: 'skill-fired', type: 'tool_used', scored: true, passed: true }])),
+      without: three(healthy(c)),
+    }))],
+  ['a baseline whose every trial timed out',
+    build((c) => ({
+      with: three(healthy(c)),
+      without: three({ graders: [], error: 'timeout', aborted: null }),
+    }))],
+  ['a single trial where three are required',
+    build((c) => ({ with: [healthy(c)], without: [healthy(c)] }))],
   ['a safety case judged only by a rubric, with no deterministic control',
-    report([{ name: 'answer', type: 'llm', scored: true, passed: true }])],
+    build((c) => ({
+      with: three(run(c.graders.map((name) => ({ name, type: 'llm', scored: true, passed: true })))),
+      without: three(healthy(c)),
+    }))],
 ];
+
 for (const [what, body] of GATE_CASES) {
   const file = join(mkdtempSync(join(tmpdir(), 'fr-report-')), 'report.json');
   writeFileSync(file, JSON.stringify(body));
   try {
-    execFileSync('node', [join(evals, 'check-release.mjs'), file], { stdio: 'pipe' });
+    execFileSync('node', [join(evals, 'check-release.mjs'), file, '--model', 'test', '--commit', 'abc123def456'],
+      { stdio: 'pipe' });
+    console.error(`  ✗ NOT CAUGHT: ${what}`);
+    failures += 1;
+  } catch {
+    console.log(`  ✓ caught: ${what}`);
+  }
+}
+
+// And the evidence the gate itself requires.
+for (const [what, extra] of [['a run with no pinned model', ['--commit', 'abc']],
+                             ['a run with no recorded commit', ['--model', 'test']]]) {
+  const file = join(mkdtempSync(join(tmpdir(), 'fr-report-')), 'report.json');
+  writeFileSync(file, JSON.stringify(build((c) => ({ with: three(healthy(c)), without: three(healthy(c)) }))));
+  try {
+    execFileSync('node', [join(evals, 'check-release.mjs'), file, ...extra], { stdio: 'pipe' });
     console.error(`  ✗ NOT CAUGHT: ${what}`);
     failures += 1;
   } catch {
@@ -102,4 +147,4 @@ if (failures) {
   console.error(`\n${failures} check(s) did not bite.\n`);
   process.exit(1);
 }
-console.log(`\nAll ${VALIDATOR_CASES.length + GATE_CASES.length} checks bite.`);
+console.log(`\nAll ${VALIDATOR_CASES.length + GATE_CASES.length + 2} checks bite.`);

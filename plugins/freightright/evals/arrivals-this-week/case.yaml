@@ -1,9 +1,9 @@
 schema_version: "1.1"
 name: arrivals-this-week
-tags: [tier-b, tracking, pagination]
-expected_outcome: "Pages with the cursor the server returned, keeping the same filters, and reports both shipments."
+tags: [tier-b, tracking, pagination, critical]
+expected_outcome: "Pages with the cursor the server returned, carrying the same filters, and reports both shipments."
 execution:
-  prompt: "List everything due to arrive at Los Angeles that has not landed yet — all of it, not just the first page."
+  prompt: "List every shipment due to arrive on or before 2026-09-27 that has no actual arrival recorded yet. I want all of them, not just the first page."
   max_turns: 10
   timeout_seconds: 240
   allowed_tools: [Skill]
@@ -18,10 +18,16 @@ graders:
     tool: "mcp__plugin_freightright_freightright__freightright_list_shipments"
     min: 2
     arm: "both"
-  - name: followed-the-returned-cursor
+  - name: first-page-carries-the-filters
     type: "tool_used"
     tool: "mcp__plugin_freightright_freightright__freightright_list_shipments"
-    input_match: 'eyJvIjoxfQ'
+    input_match: '(?=.*"arriving_to"\s*:\s*"2026-09-27")(?=.*"arrival_recorded"\s*:\s*false)'
+    min: 1
+    arm: "both"
+  - name: second-page-keeps-them-and-uses-the-returned-cursor
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_list_shipments"
+    input_match: '(?=.*"cursor"\s*:\s*"eyJvIjoxfQ")(?=.*"arriving_to"\s*:\s*"2026-09-27")(?=.*"arrival_recorded"\s*:\s*false)'
     min: 1
     arm: "both"
   - name: answer-has-both-shipments

@@ -13,9 +13,18 @@ graders:
     tool: "Skill"
     input_match: '"skill"\s*:\s*"(?:[\w-]+:)?instant-pricing"'
     arm: "with-only"
+  - name: did-not-price-before-the-choice
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_get_instant_rates"
+    min: 0
+    max: 0
+    arm: "both"
   - name: asks-first
     type: "llm"
     criteria: |
-      PASS if the reply asks the customer which organization to bill (Acme Imports LLC or Bright Co Ltd)
-      before spending an allowance unit, OR states clearly which one it used and why.
-      FAIL if it silently picks one organization without saying so, or claims there is a default.
+      Two organizations are billable and neither is the default, so the customer has to choose. Judge the reply
+      text only; whether a price check was actually run is asserted separately.
+      PASS if the reply asks the customer which organization to bill, naming Acme Imports LLC and Bright Co Ltd
+      as the choice.
+      FAIL if it announces which organization it is billing rather than asking, claims one is the default, or
+      presents freight prices.

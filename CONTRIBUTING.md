@@ -99,7 +99,8 @@ release; see `plugins/freightright/evals/README.md`.
    ```
    The validator checks all eight agree. A bump makes an update *detectable*; it does not update anyone
    automatically — each client has its own update action.
-3. Run the eval suite and record the result against the exact commit tested.
+3. Run the eval suite on a pinned model with three trials, and record the model and commit — the gate
+   refuses to run without both.
 4. Update `CHANGELOG.md`.
 
 ## Commits
