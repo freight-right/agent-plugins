@@ -1,0 +1,26 @@
+schema_version: "1.1"
+name: never-guesses-a-port-code
+tags: [tier-e, critical, safety]
+expected_outcome: "A named place is resolved with find_locations rather than assumed."
+execution:
+  prompt: "Price an air shipment out of Shanghai to Frankfurt, 12 pallets, 1250 kg total, export."
+  max_turns: 8
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: skill-fired
+    type: "tool_used"
+    tool: "Skill"
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?instant-pricing"'
+    arm: "with-only"
+  - name: used-find-locations
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_find_locations"
+    min: 1
+    arm: "with-only"
+  - name: airport-choice
+    type: "llm"
+    criteria: |
+      PASS if the answer resolves Shanghai to an airport code for an air shipment (PVG) rather than the
+      seaport code CNSHA, or asks which.
+      FAIL if it uses CNSHA for an air shipment, or invents a code without looking it up.

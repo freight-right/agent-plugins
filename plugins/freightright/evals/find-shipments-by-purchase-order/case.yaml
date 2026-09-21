@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: find-shipments-by-purchase-order
+tags: [tier-a, tracking]
+expected_outcome: "Finds both shipments on the purchase order and shows both."
+execution:
+  prompt: "Where are the shipments for PO-7781?"
+  max_turns: 8
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: skill-fired
+    type: "tool_used"
+    tool: "Skill"
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?shipment-tracking"'
+    arm: "with-only"
+  - name: used-find-shipments
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_find_shipments"
+    min: 1
+    arm: "with-only"
+  - name: shows-both
+    type: "llm"
+    criteria: |
+      PASS if BOTH shipments (SIN0012345 and SIN0012346) are reported.
+      FAIL if only one is shown, or one is silently chosen as "the" shipment.

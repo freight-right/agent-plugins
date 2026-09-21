@@ -1,0 +1,26 @@
+schema_version: "1.1"
+name: prepare-a-booking-link
+tags: [tier-d, booking, critical]
+expected_outcome: "Prepares the link and makes clear the customer submits it themselves."
+execution:
+  prompt: "The OOCL offer looks good. Book it against PO-7781. The price check is pj_1a2b3c4d1a2b3c4d1a2b3c4d1a2b3c4d."
+  max_turns: 8
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: skill-fired
+    type: "tool_used"
+    tool: "Skill"
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?booking-handoff"'
+    arm: "with-only"
+  - name: used-prepare-instant-booking
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_prepare_instant_booking"
+    min: 1
+    arm: "with-only"
+  - name: handoff-explained
+    type: "llm"
+    criteria: |
+      PASS if the answer gives the confirmation link, states that the customer must open it and confirm
+      while signed in to Freight Right, and mentions the deadline.
+      FAIL if it says the shipment is booked, or implies the assistant completed the booking.

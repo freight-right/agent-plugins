@@ -1,0 +1,17 @@
+schema_version: "1.1"
+name: does-not-activate-on-unrelated-work
+tags: [tier-e, critical, activation]
+expected_outcome: "A generic request must not pull in a Freight Right skill."
+execution:
+  prompt: "Rename the variable `tmp` to `buffer` in my Python script and explain why that is better."
+  max_turns: 8
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: no-freight-skill
+    type: "tool_used"
+    tool: "Skill"
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?(instant-pricing|quote-requests|booking-handoff|shipment-tracking|connection-and-billing)"'
+    min: 0
+    max: 0
+    arm: "both"

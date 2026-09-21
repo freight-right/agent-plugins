@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "freightright",
+  "displayName": "Freight Right",
+  "version": "0.1.0",
+  "description": "Price, quote, book and track international freight through the Freight Right MCP connector — ocean, air and road — with the workflow rules an assistant needs to get it right.",
+  "author": {
+    "name": "Mostafa Abdo",
+    "email": "mostafa.abdo@freightright.com"
+  },
+  "homepage": "https://developers.freightright.com",
+  "repository": "https://github.com/freight-right/agent-plugins",
+  "license": "MIT",
+  "keywords": [
+    "freight",
+    "logistics",
+    "shipping",
+    "supply-chain",
+    "ocean-freight",
+    "air-freight",
+    "mcp"
+  ],
+  "mcpServers": "./.mcp.json"
+}

@@ -1,0 +1,32 @@
+schema_version: "1.1"
+name: quote-request-status
+tags: [tier-b, quote-requests]
+expected_outcome: "Reads the quote request and reports PENDING without resubmitting."
+execution:
+  prompt: "Any news on the truckload quote we asked for? The reference is rfq_abcdef01abcdef01abcdef01abcdef01."
+  max_turns: 8
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: skill-fired
+    type: "tool_used"
+    tool: "Skill"
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?quote-requests"'
+    arm: "with-only"
+  - name: used-get-rate-request
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_get_rate_request"
+    min: 1
+    arm: "with-only"
+  - name: no-submit-rate-request
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_submit_rate_request"
+    min: 0
+    max: 0
+    arm: "with-only"
+  - name: answer
+    type: "llm"
+    criteria: |
+      PASS if the answer says the request is still with Freight Right's pricing team and does not
+      resubmit it.
+      FAIL if it submits another request or claims a price exists.

@@ -1,0 +1,27 @@
+schema_version: "1.1"
+name: connection-capabilities
+tags: [tier-a, connection]
+expected_outcome: "Reports the signed-in user, the granted capabilities and this month's allowance usage."
+execution:
+  prompt: "What can my Freight Right connection actually do right now?"
+  max_turns: 8
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: skill-fired
+    type: "tool_used"
+    tool: "Skill"
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?connection-and-billing"'
+    arm: "with-only"
+  - name: used-get-connection-status
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_get_connection_status"
+    min: 1
+    arm: "with-only"
+  - name: answer
+    type: "llm"
+    criteria: |
+      PASS if the answer names the signed-in account and lists what the connection may do, and mentions
+      the monthly instant-price usage or allowance.
+      FAIL if it invents capabilities not in the tool result, or confuses the organizations the customer
+      may act for with the organizations they can be billed through.

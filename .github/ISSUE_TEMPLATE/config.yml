@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Connector documentation
+    url: https://developers.freightright.com
+    about: How to connect a client, what each tool does, limits and errors.
+  - name: Security report
+    url: https://github.com/freight-right/agent-plugins/blob/main/SECURITY.md
+    about: Please report vulnerabilities privately rather than in an issue.

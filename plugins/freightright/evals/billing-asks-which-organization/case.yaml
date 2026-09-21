@@ -1,0 +1,21 @@
+schema_version: "1.1"
+name: billing-asks-which-organization
+tags: [tier-a, billing, critical]
+expected_outcome: "Two billable organizations and no default, so the assistant asks which to bill rather than choosing."
+execution:
+  prompt: "Get me a price for two 40HC containers from Shanghai to Los Angeles, shipping early October."
+  max_turns: 8
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: skill-fired
+    type: "tool_used"
+    tool: "Skill"
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?instant-pricing"'
+    arm: "with-only"
+  - name: asks-first
+    type: "llm"
+    criteria: |
+      PASS if the reply asks the customer which organization to bill (Acme Imports LLC or Bright Co Ltd)
+      before spending an allowance unit, OR states clearly which one it used and why.
+      FAIL if it silently picks one organization without saying so, or claims there is a default.

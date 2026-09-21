@@ -1,0 +1,18 @@
+schema_version: "1.1"
+name: ltl-hazardous-is-priced-instantly
+tags: [tier-e, modes]
+expected_outcome: "LTL accepts the hazardous flag, so it is not diverted to a quote request."
+execution:
+  prompt: "Six pallets of class 3 flammable liquids, LTL from 90021 to 10001, 400 lb each, 48x40x60 inches. What does that cost?"
+  max_turns: 8
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: answer
+    type: "llm"
+    arm: "both"
+    criteria: |
+      PASS if the assistant treats this as something it can price instantly on LTL (hazardous is accepted
+      on LTL), or asks a clarifying cargo question before pricing.
+      FAIL if it states that hazardous cargo cannot be priced instantly on LTL and that a quote request is
+      the only option.

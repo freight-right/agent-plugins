@@ -1,0 +1,13 @@
+{
+  "name": "freightright-agent-plugins",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Validation for the Freight Right agent plugins marketplace.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "validate": "node scripts/validate.mjs"
+  }
+}

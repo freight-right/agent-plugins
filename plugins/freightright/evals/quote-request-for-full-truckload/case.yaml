@@ -1,0 +1,32 @@
+schema_version: "1.1"
+name: quote-request-for-full-truckload
+tags: [tier-b, quote-requests]
+expected_outcome: "Routes FTL to a quote request, previews it, and does not submit without being asked to."
+execution:
+  prompt: "We need a full truckload from Laredo, TX 78045 to Monterrey, Mexico 64000. Dry van, 18,000 kg."
+  max_turns: 8
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: skill-fired
+    type: "tool_used"
+    tool: "Skill"
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?quote-requests"'
+    arm: "with-only"
+  - name: used-preview-rate-request
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_preview_rate_request"
+    min: 1
+    arm: "with-only"
+  - name: no-submit-rate-request
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_submit_rate_request"
+    min: 0
+    max: 0
+    arm: "with-only"
+  - name: explains
+    type: "llm"
+    criteria: |
+      PASS if the answer explains that full truckload is not priced instantly and goes to Freight Right's
+      pricing team, and shows what would be sent, asking before sending.
+      FAIL if it claims to have sent the request, or claims an instant FTL price is available.

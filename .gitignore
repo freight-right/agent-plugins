@@ -1,0 +1,5 @@
+node_modules/
+# Eval output: reports and recorded transcripts of real sessions. Fixtures and replays are committed; these are not.
+plugins/*/evals/results/
+*.log
+.DS_Store
