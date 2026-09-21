@@ -11,6 +11,7 @@ const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const PLUGIN = 'plugins/freightright';
 const CONNECTOR_URL = 'https://mcp.freightright.com/mcp';
 const SERVER_KEY = 'freightright';
+const PLUGIN_ID = 'freightright';
 const PORTABLE_FIELDS = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools']);
 const SHARED_MANIFEST_FIELDS = [
   'name', 'displayName', 'version', 'description', 'homepage', 'repository', 'license', 'mcpServers',
@@ -70,19 +71,44 @@ const PLUGIN_MANIFESTS = [
   ['.codex-plugin', need(`${PLUGIN}/.codex-plugin/plugin.json`)],
 ];
 
+// The portable schema is CLOSED. `displayName` and `mcpServers` are not permitted there, and MCP configuration
+// must live in `mcp.json` — so the root manifest is NOT the template for the client ones; it is its own shape.
+const PORTABLE_MANIFEST_FIELDS = new Set([
+  '$schema', 'name', 'version', 'description', 'author', 'homepage', 'repository', 'license', 'keywords',
+  'extensions',
+]);
+const PORTABLE_SCHEMA = 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json';
+if (portable) {
+  if (portable.$schema !== PORTABLE_SCHEMA) {
+    fail(`${PLUGIN}/plugin.json`, `$schema must be ${PORTABLE_SCHEMA} for the portable format`);
+  }
+  for (const key of Object.keys(portable)) {
+    if (!PORTABLE_MANIFEST_FIELDS.has(key)) {
+      fail(`${PLUGIN}/plugin.json`, `\`${key}\` is not permitted by the portable schema, which is closed`);
+    }
+  }
+}
+
+// Facts the portable manifest does carry must agree everywhere.
 for (const [where, manifest] of PLUGIN_MANIFESTS) {
   if (!manifest || !portable) continue;
-  for (const field of [...SHARED_MANIFEST_FIELDS, 'keywords', 'author']) {
+  for (const field of ['name', 'version', 'description', 'homepage', 'repository', 'license', 'keywords', 'author']) {
     if (JSON.stringify(portable[field]) !== JSON.stringify(manifest[field])) {
       fail(`${where}/plugin.json`, `\`${field}\` differs from the portable manifest`);
     }
   }
 }
+// displayName and the MCP pointer are client-only, so the client manifests are compared to each other.
+const clientManifests = PLUGIN_MANIFESTS.map(([, m]) => m).filter(Boolean);
+for (const field of ['displayName', 'mcpServers']) {
+  const values = new Set(clientManifests.map((m) => JSON.stringify(m[field])));
+  if (values.size > 1) fail('plugin manifests', `\`${field}\` differs between the client manifests`);
+}
 
 // Codex's presentation block is its own shape, so it is checked against what it is supposed to restate.
 const codexPlugin = PLUGIN_MANIFESTS.find(([w]) => w === '.codex-plugin')?.[1];
 if (codexPlugin && portable) {
-  if (codexPlugin.interface?.displayName !== portable.displayName) {
+  if (codexPlugin.interface?.displayName !== codexPlugin.displayName) {
     fail('.codex-plugin/plugin.json', 'interface.displayName must match displayName');
   }
   if (codexPlugin.interface?.longDescription !== portable.description) {
@@ -161,9 +187,23 @@ if (mcp) {
   }
 }
 
+// The portable component path is `mcp.json` with transport `streamable-http`; the native one is `.mcp.json` with
+// `http`. Different spellings of the same server — so check they still describe the same server.
+const portableMcp = need(`${PLUGIN}/mcp.json`);
+if (portableMcp) {
+  const server = portableMcp.mcpServers?.[SERVER_KEY];
+  if (!server) fail(`${PLUGIN}/mcp.json`, `expected a server named "${SERVER_KEY}"`);
+  else {
+    if (server.type !== 'streamable-http') {
+      fail(`${PLUGIN}/mcp.json`, 'the portable format names this transport "streamable-http"');
+    }
+    if (server.url !== CONNECTOR_URL) fail(`${PLUGIN}/mcp.json`, `url must be exactly ${CONNECTOR_URL}`);
+  }
+}
+
 // ---------------------------------------------------------------- nothing points at a non-production environment
 for (const path of files.filter((p) => !p.startsWith('.git/'))) {
-  if (path === 'CONTRIBUTING.md' || path === 'AGENTS.md' || path === 'scripts/validate.mjs') continue;
+  if (['CONTRIBUTING.md', 'AGENTS.md', 'scripts/validate.mjs', 'scripts/selftest.mjs'].includes(path)) continue;
   const text = read(path);
   // An environment prefix is a whole label: `dev-mcp.…` and `staging.…`, never `developers.freightright.com`.
   const stray = text.match(/https?:\/\/(?:[a-z0-9-]+\.)*(?:dev|staging|qa|uat)[-.][a-z0-9.-]+|https?:\/\/(?:localhost|127\.0\.0\.1)/i);
@@ -225,7 +265,7 @@ for (const dir of skills) {
 
 // Every tool named anywhere must exist, and every tool must be reachable from a skill.
 for (const path of files.filter((p) => p.endsWith('.md') || p.endsWith('.mjs'))) {
-  if (path === 'scripts/validate.mjs') continue;
+  if (path === 'scripts/validate.mjs' || path === 'scripts/selftest.mjs') continue;
   // Strip the scoped MCP prefix first: `mcp__plugin_freightright_freightright__foo` is one tool name, not two.
   const text = read(path).replace(/mcp__plugin_[a-z0-9]+_[a-z0-9]+__/g, '');
   for (const token of text.match(/freightright_[a-z_]+/g) ?? []) {
@@ -249,11 +289,21 @@ if (existsSync(join(ROOT, evalsDir))) {
   for (const tool of toolNames) {
     if (!mocked.has(tool)) fail('evals/mocks', `${tool} has no mock, so it is unavailable to every eval case`);
   }
+  const SCOPED = `mcp__plugin_${PLUGIN_ID}_${SERVER_KEY}__`;
   for (const path of walk(evalsDir).filter((p) => p.endsWith('.yaml') || p.endsWith('.md'))) {
-    for (const [, name] of read(path).matchAll(/^\s*(?:tool|before|after):\s*(\S+)\s*$/gm)) {
-      const bare = name.replace(/^mcp__plugin_[a-z0-9]+_[a-z0-9]+__/, '');
-      if (bare.startsWith('freightright_') && !mocked.has(bare)) {
-        fail(path, `grader names "${name}", which has no mock — a "must not call" check would pass vacuously`);
+    for (const [, raw] of read(path).matchAll(/^\s*(?:-\s+)?(?:tool|before|after):\s*(.+?)\s*$/gm)) {
+      // YAML values are usually quoted. Keeping the quotes made the prefix strip fail silently, so a grader naming
+      // a tool that does not exist passed validation and then asserted nothing at run time.
+      const name = raw.replace(/^["']|["']$/g, '').trim();
+      if (!name || name === 'Skill' || !name.includes('freightright')) continue;
+      if (!name.startsWith(SCOPED)) {
+        fail(path, `grader names "${name}"; an MCP tool must carry the scoped prefix ${SCOPED}`);
+        continue;
+      }
+      const bare = name.slice(SCOPED.length);
+      if (!toolNames.has(bare)) fail(path, `grader names "${bare}", which is not a real tool`);
+      else if (!mocked.has(bare)) {
+        fail(path, `grader names "${bare}", which has no mock — a "must not call" check would pass vacuously`);
       }
     }
   }

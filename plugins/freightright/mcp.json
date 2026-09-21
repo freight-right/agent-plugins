@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "freightright": {
+      "type": "streamable-http",
+      "url": "https://mcp.freightright.com/mcp"
+    }
+  }
+}
