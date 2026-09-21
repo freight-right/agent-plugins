@@ -45,9 +45,10 @@ skills alone.** Cases where both arms could answer are the ones that isolate the
 Four cases scored 1.00 in both arms. That is a passing regression check, not a failure — it says the model already
 behaved well there and the plugin did not make it worse.
 
-To measure the skills on their own, run the suite twice with `--ablation none`: once as shipped, once with
-`skills/` moved aside so only `.mcp.json` remains. That comparison holds the tools constant and is the one that
-supports a claim about the guidance.
+To measure the skills on their own there is now a command — `npm run compare-skills -- --model <model>` — which
+runs the suite twice with `--ablation none`, once as shipped and once with `skills/` moved aside so only the MCP
+configuration remains. That holds the tools constant and is the only comparison that supports a claim about the
+guidance. **It has not been run yet**, so no such claim is made anywhere in this repository.
 
 ## Client checks — 2026-09-21
 

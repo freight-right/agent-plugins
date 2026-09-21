@@ -71,14 +71,19 @@ const evals = join(ROOT, 'plugins/freightright/evals');
 const cases = readdirSync(evals, { withFileTypes: true })
   .filter((e) => e.isDirectory() && !['mocks', 'results'].includes(e.name))
   .filter((e) => existsSync(join(evals, e.name, 'case.yaml')))
-  .map((e) => ({
-    name: e.name,
-    graders: [...readFileSync(join(evals, e.name, 'case.yaml'), 'utf8')
-      .matchAll(/^\s*-\s+name:\s*(\S+)\s*$/gm)].map((m) => m[1].replace(/^["']|["']$/g, '')),
-  }));
+  .map((e) => {
+    const text = readFileSync(join(evals, e.name, 'case.yaml'), 'utf8');
+    const graders = text.split(/^\s*-\s+name:\s*/m).slice(1).map((block) => ({
+      name: block.split('\n')[0].trim().replace(/^["']|["']$/g, ''),
+      withOnly: /^\s*arm:\s*["']?with-only["']?\s*$/m.test(block),
+    }));
+    return { name: e.name, graders: graders.map((g) => g.name), scored: graders.filter((g) => !g.withOnly).map((g) => g.name) };
+  });
 
 const run = (graders) => ({ graders, error: null, aborted: null });
 const healthy = (c) => run(c.graders.map((name) => ({ name, type: 'tool_used', scored: true, passed: true })));
+// A baseline reports only the graders scored in both arms, and its verdicts are allowed to fail.
+const baseline = (c) => run(c.scored.map((name) => ({ name, type: 'tool_used', scored: true, passed: false })));
 const build = (make) => ({
   schemaVersion: 1, partial: false, claudeVersion: 'test',
   aggregates: { overallScore: 1, casesPassed: cases.length, casesTotal: cases.length, meanDelta: 0.5 },
@@ -109,6 +114,8 @@ const GATE_CASES = [
     }))],
   ['a single trial where three are required',
     build((c) => ({ with: [healthy(c)], without: [healthy(c)] }))],
+  ['a baseline carrying no grader results at all',
+    build((c) => ({ with: three(healthy(c)), without: three(run([])) }))],
   ['a safety case judged only by a rubric, with no deterministic control',
     build((c) => ({
       with: three(run(c.graders.map((name) => ({ name, type: 'llm', scored: true, passed: true })))),
@@ -143,8 +150,22 @@ for (const [what, extra] of [['a run with no pinned model', ['--commit', 'abc']]
   }
 }
 
+// Positive control. Without this, a gate that rejected everything would look perfect above.
+{
+  const file = join(mkdtempSync(join(tmpdir(), 'fr-report-')), 'report.json');
+  writeFileSync(file, JSON.stringify(build((c) => ({ with: three(healthy(c)), without: three(baseline(c)) }))));
+  try {
+    execFileSync('node', [join(evals, 'check-release.mjs'), file, '--model', 'test', '--commit', 'abc123def456'],
+      { stdio: 'pipe' });
+    console.log('  ✓ a well-formed report still passes');
+  } catch (error) {
+    console.error(`  ✗ FALSE ALARM: a well-formed report was rejected\n${error.stdout ?? ''}${error.stderr ?? ''}`);
+    failures += 1;
+  }
+}
+
 if (failures) {
   console.error(`\n${failures} check(s) did not bite.\n`);
   process.exit(1);
 }
-console.log(`\nAll ${VALIDATOR_CASES.length + GATE_CASES.length + 2} checks bite.`);
+console.log(`\nAll ${VALIDATOR_CASES.length + GATE_CASES.length + 3} checks bite, and a good report still passes.`);

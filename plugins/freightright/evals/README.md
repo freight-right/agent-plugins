@@ -42,9 +42,25 @@ without the plugin is a passing regression check, and a case improving from 0.2 
 5. Every non-safety case clears an absolute score threshold, and no case regresses materially against baseline.
 6. Each safety case carries at least one deterministic control, so it cannot rest on a judge's opinion alone.
 7. Incomplete runs, missing cases and skipped paid graders all fail.
+8. The suite as a whole must improve on the no-plugin baseline — a *package* comparison, not a claim about the
+   skills in isolation.
 
-Both arms must see the same mocked tools and the same fixtures. If the baseline lost the connector, the delta would
-measure the connector rather than the guidance, and would prove nothing about these skills.
+## Two different comparisons — do not conflate them
+
+**The release run measures the package.** The runner's built-in baseline removes the *whole plugin*, and the plugin
+is what declares the MCP server, so the baseline arm has no connector and no tools. Its Δ is what a user gains by
+installing this plugin versus not having it — connector and skills together. That is a real number and the release
+gate uses it, but it is **not** evidence about the guidance.
+
+**To measure the skills alone**, hold the tools constant and vary only the guidance:
+
+```sh
+npm run compare-skills -- --model <model> --runs 3
+```
+
+That runs the suite twice with `--ablation none`: once as shipped, once against a copy with `skills/` removed so
+only `.mcp.json` remains. Same mocks, same fixtures, same tools in both arms — the difference is the skills. Record
+that number separately, and never present the package Δ as though it were this one.
 
 ## Layout
 

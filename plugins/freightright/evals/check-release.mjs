@@ -50,7 +50,12 @@ for (const entry of readdirSync(EVALS, { withFileTypes: true })) {
   if (!existsSync(yaml)) continue;
   const text = readFileSync(yaml, 'utf8');
   const tags = (/^tags:\s*\[(.*)\]/m.exec(text)?.[1] ?? '').split(',').map((t) => t.trim());
-  const graders = [...text.matchAll(/^\s*-\s+name:\s*(\S+)\s*$/gm)].map((m) => m[1].replace(/^["']|["']$/g, ''));
+  // A grader marked `with-only` is excluded from the baseline arm by design; every other one is expected to be
+  // reported in BOTH arms. Its baseline verdict may fail — that is what a baseline is for — but it must exist.
+  const graders = text.split(/^\s*-\s+name:\s*/m).slice(1).map((block) => ({
+    name: block.split('\n')[0].trim().replace(/^["']|["']$/g, ''),
+    withOnly: /^\s*arm:\s*["']?with-only["']?\s*$/m.test(block),
+  }));
   suite.set(entry.name, { critical: tags.includes('critical'), graders });
 }
 
@@ -98,7 +103,7 @@ for (const result of report.cases ?? []) {
     }
     // Completeness: every control the suite declares must be present, not merely the ones that happened to run.
     const present = new Set(graders.map((g) => g.name));
-    for (const name of declared.graders) {
+    for (const { name } of declared.graders) {
       if (!present.has(name)) problems.push(`${where}: grader "${name}" is missing from the report`);
     }
     // A grader that exists is an assertion, whatever arm it is scored in and whatever the case is tagged.
@@ -110,6 +115,19 @@ for (const result of report.cases ?? []) {
     if (declared.critical && graders.some((g) => typeof g.type === 'string')
         && !graders.some((g) => DETERMINISTIC.has(g.type))) {
       problems.push(`${where}: safety case has no deterministic control, only judged output`);
+    }
+  }
+
+  // The baseline is evidence, not a formality. Without its grader results the delta is a number with nothing
+  // behind it, so require the graders that are scored in both arms to be reported there.
+  const expectedInBaseline = declared.graders.filter((g) => !g.withOnly).map((g) => g.name);
+  for (const [index, run] of (result.arms?.without ?? []).entries()) {
+    if (run.error || run.aborted) continue;
+    const present = new Set((run.graders ?? []).map((g) => g.name));
+    for (const name of expectedInBaseline) {
+      if (!present.has(name)) {
+        problems.push(`${result.name} baseline run ${index + 1}: grader "${name}" has no result recorded`);
+      }
     }
   }
 
