@@ -56,7 +56,7 @@ supports a claim about the guidance.
 | Claude Code 2.1.278 | `plugin validate --strict` passes; suite above |
 | Codex CLI 0.155.1 | Reads `.claude-plugin/marketplace.json` directly. Installed, all five skills present, MCP server registered, and it answered a freight question correctly from the skills — including that hazardous LTL prices instantly while temperature-controlled LTL goes to a quote request |
 | Copilot CLI 1.0.87 | Installed from the same file, all five skills registered, MCP server listed as `freightright (http)`, and it answered correctly from the skills — hazardous LTL prices instantly, and an `UNKNOWN` booking operation is read again rather than prepared a second time |
-| Cursor 2.2.44 | Requires its own `.cursor-plugin/marketplace.json`, which this repo now ships. Installing is an in-app action; not yet verified |
+| Cursor 2.2.44 | Marketplace added straight from the private repository over https; all five skills load and it answered the same freight questions correctly. `cursor-agent --plugin-dir` registered the connector as `plugin-Freight Right-freightright` with status `needsAuth`, which is the plugin's MCP configuration being read and acted on |
 
 ### Which marketplace file each client reads
 
@@ -67,7 +67,7 @@ Established by removing files and watching what failed, not by assumption.
 | Claude Code | `.claude-plugin/marketplace.json` |
 | Codex CLI | `.claude-plugin/marketplace.json`, directly |
 | Copilot CLI | Searches `marketplace.json`, `.plugin/marketplace.json`, `.github/plugin/marketplace.json`, then `.claude-plugin/marketplace.json` — so the Claude file serves it |
-| Cursor | **Only** `.cursor-plugin/marketplace.json`. It does not fall back to the Claude file, so without its own adapter Cursor cannot see this plugin at all |
+| Cursor | `.cursor-plugin/plugin.json` for the plugin manifest — proven by tagging each manifest with a different description and watching Cursor print its own. For the marketplace it accepts either its own file or the Claude one; with neither it degrades to auto-discovery, renaming the marketplace after the repository and dropping the description |
 
 No client has been verified against a **live** connector, because the production URL this plugin ships is not live
 yet. That check is owed at the cutover.

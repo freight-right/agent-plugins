@@ -34,7 +34,11 @@ Established by deleting files and reading what each client complained about, not
 - **Codex** rejects `.codex-plugin/` for the *marketplace* — that path is only for the plugin manifest. Without
   `.agents/plugins/marketplace.json` it falls through and will even pick up Cursor's file.
 - **Copilot CLI** searches `marketplace.json`, `.plugin/`, `.github/plugin/`, then `.claude-plugin/`.
-- **Cursor** reads `.cursor-plugin/marketplace.json` only, and nests `description`/`version` under `metadata`.
+- **Cursor** reads `.cursor-plugin/plugin.json` for the plugin — proven by giving each manifest a different
+  description and watching Cursor print the one from its own file. Its *marketplace* is more forgiving than its
+  documentation suggests: `.cursor-plugin/marketplace.json` or `.claude-plugin/marketplace.json` both work. With
+  neither, Cursor falls back to auto-discovery and the marketplace loses its name and the plugin its description,
+  so one of the two must exist.
 
 Each shape differs, so the validator compares what the files **mean** through one accessor per client, never by
 requiring the same field placement. Adding a client means adding a row to `MARKETPLACES` in `scripts/validate.mjs`.

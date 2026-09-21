@@ -100,7 +100,7 @@ install with no URL to paste.
 | Claude Code 2.1.278 | Verified | Verified |
 | Codex CLI 0.155.1 | Verified | Verified |
 | Copilot CLI 1.0.87 | Verified | Verified |
-| Cursor 2.2.44 | Manifest shipped | Not yet run |
+| Cursor 2.2.44 | Verified | Verified |
 
 Each client reads its own manifest — none is made to fall through to another vendor's path.
 
