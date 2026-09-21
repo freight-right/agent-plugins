@@ -79,6 +79,16 @@ copilot plugin marketplace add freight-right/agent-plugins
 copilot plugin install freightright@freightright
 ```
 
+**Grok**
+
+```sh
+grok plugin marketplace add freight-right/agent-plugins
+grok plugin install freightright@agent-plugins --trust
+```
+
+Grok reads the portable manifest, so it needs nothing specific to it. `--trust` is Grok's own confirmation that a
+plugin may run skills and MCP servers on your machine.
+
 **Cursor** — two ways.
 
 *From this repository*, which works as soon as the repository is public:
@@ -101,6 +111,7 @@ install with no URL to paste.
 | Codex CLI 0.155.1 | Verified | Verified |
 | Copilot CLI 1.0.87 | Verified | Verified |
 | Cursor 2.2.44 | Verified | Verified |
+| Grok 1.0.40 | Verified | Verified |
 
 Each client reads its own manifest — none is made to fall through to another vendor's path.
 

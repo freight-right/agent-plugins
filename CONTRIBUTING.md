@@ -29,6 +29,7 @@ prefer installing that way.
 | Codex CLI | `.agents/plugins/marketplace.json` | `.codex-plugin/plugin.json` |
 | Copilot CLI | `.github/plugin/marketplace.json` | root `plugin.json` |
 | Cursor | `.cursor-plugin/marketplace.json` | `.cursor-plugin/plugin.json` |
+| Grok | none — it scans `plugins/*/` | root `plugin.json` (the portable manifest) |
 
 Established by deleting files and reading what each client complained about, not by assumption:
 
@@ -40,6 +41,14 @@ Established by deleting files and reading what each client complained about, not
   documentation suggests: `.cursor-plugin/marketplace.json` or `.claude-plugin/marketplace.json` both work. With
   neither, Cursor falls back to auto-discovery and the marketplace loses its name and the plugin its description,
   so one of the two must exist.
+
+- **Grok** needs no marketplace manifest at all: it scans `plugins/*/`, and names a local source after the
+  directory regardless of what any manifest says. It reads the **portable root `plugin.json`** — adding a
+  `.grok-plugin/` directory changes nothing, which is why there isn't one. A file no client reads is worse than a
+  fall-through: it implies support that does not exist.
+- **MCP discovery**: every client tested reads `.mcp.json`. The portable `mcp.json` is carried for conformance with
+  the Agent Plugins schema, not because something reads it — Grok, for instance, reports no MCP servers when only
+  the portable file is present.
 
 Each shape differs, so the validator compares what the files **mean** through one accessor per client, never by
 requiring the same field placement. Adding a client means adding a row to `MARKETPLACES` in `scripts/validate.mjs`.
@@ -95,6 +104,7 @@ Inside the session, run `/mcp` to authenticate and to confirm the scoped tool pr
 ```sh
 npm run validate                                   # repository invariants
 claude plugin validate ./plugins/freightright --strict
+grok plugin validate ./plugins/freightright        # a second opinion, if you have Grok installed
 ```
 
 Both run in CI on every push and pull request. The behavioural eval suite is billed and run by a person before a

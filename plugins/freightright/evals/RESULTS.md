@@ -57,6 +57,7 @@ guidance. **It has not been run yet**, so no such claim is made anywhere in this
 | Claude Code 2.1.278 | `plugin validate --strict` passes; suite above |
 | Codex CLI 0.155.1 | Reads `.claude-plugin/marketplace.json` directly. Installed, all five skills present, MCP server registered, and it answered a freight question correctly from the skills — including that hazardous LTL prices instantly while temperature-controlled LTL goes to a quote request |
 | Copilot CLI 1.0.87 | Installed from the same file, all five skills registered, MCP server listed as `freightright (http)`, and it answered correctly from the skills — hazardous LTL prices instantly, and an `UNKNOWN` booking operation is read again rather than prepared a second time |
+| Grok 1.0.40 | `grok plugin validate` passes; installed from a local marketplace source, skills and MCP servers detected, and it answered the same freight questions correctly on `grok-4.7` |
 | Cursor 2.2.44 | Marketplace added straight from the private repository over https; all five skills load and it answered the same freight questions correctly. `cursor-agent --plugin-dir` registered the connector as `plugin-Freight Right-freightright` with status `needsAuth`, which is the plugin's MCP configuration being read and acted on |
 
 ### Which marketplace file each client reads
@@ -68,6 +69,7 @@ Established by removing files and watching what failed, not by assumption.
 | Claude Code | `.claude-plugin/marketplace.json` |
 | Codex CLI | `.claude-plugin/marketplace.json`, directly |
 | Copilot CLI | Searches `marketplace.json`, `.plugin/marketplace.json`, `.github/plugin/marketplace.json`, then `.claude-plugin/marketplace.json` — so the Claude file serves it |
+| Grok | The **portable root `plugin.json`** — proven by tagging each manifest and watching Grok print the portable one, and by adding a `.grok-plugin/` that changed nothing. No marketplace manifest is consulted: Grok scans `plugins/*/`. It discovers MCP through `.mcp.json`, not the portable `mcp.json` |
 | Cursor | `.cursor-plugin/plugin.json` for the plugin manifest — proven by tagging each manifest with a different description and watching Cursor print its own. For the marketplace it accepts either its own file or the Claude one; with neither it degrades to auto-discovery, renaming the marketplace after the repository and dropping the description |
 
 No client has been verified against a **live** connector, because the production URL this plugin ships is not live
