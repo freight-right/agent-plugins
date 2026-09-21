@@ -89,8 +89,12 @@ release; see `plugins/freightright/evals/README.md`.
    python scripts/export_contract.py --fr-mcp ../fr-mcp
    ```
    If a tool was added, removed or renamed, update the skills and the mocks, and say so in the changelog.
-2. Bump `version` in **both** `plugins/freightright/plugin.json` and `.claude-plugin/plugin.json`. The validator
-   checks they agree. A bump makes an update *detectable*; it does not update anyone automatically.
+2. Bump the version. Eight files state it, in four different shapes, so there is one command and no hand-editing:
+   ```sh
+   npm run set-version -- 0.2.0
+   ```
+   The validator checks all eight agree. A bump makes an update *detectable*; it does not update anyone
+   automatically — each client has its own update action.
 3. Run the eval suite and record the result against the exact commit tested.
 4. Update `CHANGELOG.md`.
 

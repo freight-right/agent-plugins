@@ -1,11 +1,11 @@
 schema_version: "1.1"
 name: arrivals-this-week
-tags: [tier-b, tracking]
-expected_outcome: "Lists arrivals and offers the next page using the cursor the server returned."
+tags: [tier-b, tracking, pagination]
+expected_outcome: "Pages with the cursor the server returned, keeping the same filters, and reports both shipments."
 execution:
-  prompt: "What should be arriving at Los Angeles this week that has not landed yet?"
-  max_turns: 8
-  timeout_seconds: 180
+  prompt: "List everything due to arrive at Los Angeles that has not landed yet — all of it, not just the first page."
+  max_turns: 10
+  timeout_seconds: 240
   allowed_tools: [Skill]
 graders:
   - name: skill-fired
@@ -13,14 +13,20 @@ graders:
     tool: "Skill"
     input_match: '"skill"\s*:\s*"(?:[\w-]+:)?shipment-tracking"'
     arm: "with-only"
-  - name: used-list-shipments
+  - name: fetched-both-pages
     type: "tool_used"
     tool: "mcp__plugin_freightright_freightright__freightright_list_shipments"
+    min: 2
+    arm: "both"
+  - name: followed-the-returned-cursor
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_list_shipments"
+    input_match: 'eyJvIjoxfQ'
     min: 1
-    arm: "with-only"
-  - name: cursor
-    type: "regex"
-    target: "last_message"
-    pattern: "eyJvIjoxfQ|more"
-    flags: "i"
-    arm: "with-only"
+    arm: "both"
+  - name: answer-has-both-shipments
+    type: "llm"
+    arm: "both"
+    criteria: |
+      PASS if the answer reports BOTH SIN0012345 and SIN0012399, and does not claim further pages remain.
+      FAIL if it reports only the first page, invents a shipment, or says more pages are available.

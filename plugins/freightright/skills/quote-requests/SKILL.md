@@ -68,9 +68,14 @@ Submitting an identical request again within **30 days** returns the first one r
 is a safeguard, not a way to poll.
 
 `freightright_list_quotes` is the index across everything — quotes from the portal, from quote requests and from
-instant bookings. For the lane, prices or booking state of a row, take its `rate_request_id` and call
-`freightright_get_rate_request`. A **quote number is an integer** shown in Shipment Manager and is **not** a quote
-request id.
+instant bookings.
+
+**Only some rows can be opened here.** A row with a `rate_request_id` (`rfq_…`) can be read in full with
+`freightright_get_rate_request`. A row created in the portal has **`rate_request_id: null`** and there is no tool
+that reads it — say so plainly and point the customer at that quote in Shipment Manager, rather than guessing an id
+or reporting the row as if it were complete.
+
+A **quote number is an integer** shown in Shipment Manager and is **not** a quote request id.
 
 When `has_more` is true, call again with `cursor` set to `next_cursor` and the same filters. Never invent a cursor.
 

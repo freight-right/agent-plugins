@@ -3,9 +3,15 @@
 Regenerate these at every release. A score without the model, the CLI version and the commit it ran against says
 nothing a month later.
 
-## 0.1.0 — 2026-09-21
+## 0.1.0 — 2026-09-21 (indicative, superseded)
 
-Claude Code **2.1.278**, default model, mocked servers, `--runs 1`, `--ablation with-without`.
+Claude Code **2.1.278**, mocked servers, `--runs 1`, `--ablation with-without`. The model was Claude Code's
+default and was **not pinned**, and the plugin commit was not recorded — both are required by the release gate and
+neither was captured, so treat these as indicative rather than as release evidence.
+
+Several defects have been fixed since this ran: the gate itself accepted reports that proved nothing, two cases did
+not exercise what they claimed, and three skill statements were wrong. **A release run against
+`bedf49778862` or later is owed**, with `--runs 3`, an explicitly pinned `--model`, and the commit recorded here.
 
 | | |
 |---|---|

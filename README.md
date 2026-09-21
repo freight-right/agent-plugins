@@ -95,14 +95,17 @@ install with no URL to paste.
 
 ### Supported clients
 
-| Client | Status |
-|---|---|
-| Claude Code 2.1.278 | Verified |
-| Codex CLI 0.155.1 | Verified |
-| Copilot CLI 1.0.87 | Verified |
-| Cursor 2.2.44 | Verified |
+| Client | Installs | Skills work |
+|---|---|---|
+| Claude Code 2.1.278 | Verified | Verified |
+| Codex CLI 0.155.1 | Verified | Verified |
+| Copilot CLI 1.0.87 | Verified | Verified |
+| Cursor 2.2.44 | Manifest shipped | Not yet run |
 
 Each client reads its own manifest — none is made to fall through to another vendor's path.
+
+No client has yet completed an OAuth sign-in against the connector, because the production URL this plugin ships
+goes live with the production service. Installing and using the skills is what the table reports.
 
 ## What the connector can do
 

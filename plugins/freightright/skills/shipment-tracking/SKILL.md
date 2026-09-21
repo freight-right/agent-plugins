@@ -45,7 +45,8 @@ cursor. A shipment nobody can see is not an error — an account sees the shipme
 
 ## Estimated is not actual
 
-A date with an `actual` happened. A date with only an `estimated` has not: it is a plan that moves.
+A date with an `actual` happened. A date with only an `estimated` has **no actual event recorded** — which is
+not the same as the event not having happened. The estimate is a plan that moves; the silence is just silence.
 
 - **departure** — left the origin port or facility.
 - **arrival** — reached the final air or ocean port of the main leg. **Not delivery.**

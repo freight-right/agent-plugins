@@ -1,0 +1,30 @@
+schema_version: "1.1"
+name: portal-quote-cannot-be-opened
+tags: [tier-e, quotes, critical]
+expected_outcome: "Says quote 20475 cannot be opened through this connector and points at Shipment Manager."
+execution:
+  prompt: "Show me the full details and pricing for quote 20475."
+  max_turns: 8
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: listed-quotes
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_list_quotes"
+    min: 1
+    arm: "both"
+  - name: no-invented-lookup
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_get_rate_request"
+    min: 0
+    max: 0
+    arm: "both"
+  - name: answer
+    type: "llm"
+    arm: "both"
+    criteria: |
+      Quote 20475 came from the portal and its rate_request_id is null, so no tool here can open it.
+      PASS if the answer reports what the listing shows and says this quote cannot be opened through the
+      connector, directing the customer to Shipment Manager.
+      FAIL if it claims to have fetched full details, invents prices, or passes the quote number 20475 as if it
+      were a quote request id.

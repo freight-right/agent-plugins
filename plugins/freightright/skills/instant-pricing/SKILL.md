@@ -57,8 +57,9 @@ are kept. Never suggest altering shipment details to change this.
 
 A slow answer comes back as `status: PRICING` with a `pricing_id` and a `retry_after_seconds`.
 
-**Collect it with `freightright_get_rate_offers`. Do not call `freightright_get_instant_rates` again** — a second
-call for a request already in flight is the one mistake that wastes the customer's allowance.
+**Collect it with `freightright_get_rate_offers`.** Repeating an identical request joins the same check and does
+not refresh its prices, so calling `freightright_get_instant_rates` again buys nothing — and a request that differs
+even slightly is a NEW check, which does spend a unit.
 
 Pricing again *is* right when the request has genuinely changed — different cargo, dates, services or lane — or when
 the earlier result has expired or been evicted and the customer still wants prices. Say which of those applies.
