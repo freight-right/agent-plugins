@@ -1,16 +1,7 @@
 {
-  "signed_in_as": "dana@acme-imports.example",
-  "role": "USER",
-  "organizations": [
-    {
-      "id": "ACMEIMPLAX",
-      "name": "Acme Imports LLC"
-    },
-    {
-      "id": "BRIGHTCOLTD",
-      "name": "Bright Co Ltd"
-    }
-  ],
+  "signed_in_as": "ops@freightright.example",
+  "role": "ADMIN",
+  "organizations": [],
   "access": "ok",
   "message": "Connected.",
   "permissions": [

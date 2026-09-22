@@ -1,7 +1,7 @@
 {
   "source": {
     "repository": "freight-right/fr-mcp",
-    "revision": "98f3b6cd1e408103fef3048de7aac1b6db6125d1"
+    "revision": "d748f3e1a4f2a49250a7eb89529053df96124f1d"
   },
   "tools": [
     {
@@ -86,6 +86,19 @@
             "description": "Also search archived (completed) shipments.",
             "type": "boolean"
           },
+          "organization": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9_-]{1,64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Only the shipments of this organization, by its id (as freightright_list_billing_organizations or a quote's billing shows it). A customer's connection can only narrow to its own organizations, in the roles it holds for them; a Freight Right administrator's reaches any organization, in any role."
+          },
           "limit": {
             "default": 10,
             "maximum": 25,
@@ -164,7 +177,7 @@
     },
     {
       "name": "freightright_get_connection_status",
-      "description": "Show which Freight Right user this assistant is connected as, the organizations it can ACT FOR (whose shipments and quotes it may read — not the same set as the organizations the account may be BILLED through, which freightright_list_billing_organizations lists, so the two counts can differ), what the customer allowed this connection to do, and whether access is currently ok, paused or temporarily unavailable. Use it when the user asks who they are signed in as or what you can do for them, or when another Freight Right tool reports an access problem. Takes no arguments; read-only.",
+      "description": "Show which Freight Right user this assistant is connected as and whether they are a customer or a Freight Right administrator; for a customer, the organizations it can ACT FOR (whose shipments and quotes it may read — not the same set as the organizations the account may be BILLED through, which freightright_list_billing_organizations lists, so the two counts can differ); for an administrator every organization is in reach and the one to bill is named per request. Also what the user allowed this connection to do, and whether access is currently ok, paused or temporarily unavailable. Use it when the user asks who they are signed in as or what you can do for them, or when another Freight Right tool reports an access problem. Takes no arguments; read-only.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -1057,11 +1070,36 @@
     },
     {
       "name": "freightright_list_billing_organizations",
-      "description": "List the organizations this customer can be billed THROUGH — which is not the same set as the organizations a connection can act for (freightright_get_connection_status lists those, and a customer can see shipments of an organization they cannot be billed through). A price check, a quote request and a booking are made FOR a billing account, and the account decides how: LINKED_ORGANIZATION (bill an organization this account is linked to) · COMPANY_NAME (bill by company name — this account has no linked organization) · ANY_ORGANIZATION_OR_COMPANY_NAME (either an organization or a company name is accepted). With LINKED_ORGANIZATION pass one of these ids as `billing_organization_id` (ask the user which, when there are several and none is the default); with COMPANY_NAME there is nothing to choose — pass the company name the user gives as `billing_company_name`; with ANY_ORGANIZATION_OR_COMPANY_NAME either is accepted. The policy can change, so read it when a billing refusal says it did. Needs any one rates permission. Takes no arguments; read-only.",
+      "description": "List the organizations this account can be billed THROUGH — which is not the same set as the organizations a connection can act for (freightright_get_connection_status lists those, and a customer can see shipments of an organization they cannot be billed through). A price check, a quote request and a booking are made FOR a billing account, and the account decides how: LINKED_ORGANIZATION (bill an organization this account is linked to) · COMPANY_NAME (bill by company name — this account has no linked organization) · ANY_ORGANIZATION_OR_COMPANY_NAME (either an organization or a company name is accepted). With LINKED_ORGANIZATION pass one of these ids as `billing_organization_id` (ask the user which, when there are several and none is the default); with COMPANY_NAME there is nothing to choose — pass the company name the user gives as `billing_company_name`; with ANY_ORGANIZATION_OR_COMPANY_NAME — a Freight Right administrator — either is accepted, and the organizations are found by SEARCH: give `query` (part of the id or name the user said) and pass the id of the match the user confirms, never a guess. The policy can change, so read it when a billing refusal says it did. Needs any one rates permission. Read-only.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
-        "properties": {}
+        "properties": {
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Part of an organization id or name. REQUIRED for a Freight Right administrator, who may bill any client organization; optional for a customer, whose organizations are listed anyway.",
+            "examples": [
+              "Acme"
+            ]
+          },
+          "limit": {
+            "default": 20,
+            "description": "How many matches to show.",
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
       },
       "annotations": {
         "readOnlyHint": true,
@@ -1073,7 +1111,7 @@
     },
     {
       "name": "freightright_list_quotes",
-      "description": "List the customer's quotes in Shipment Manager, newest first: quotes their team or Freight Right created in the portal, quote requests made through the API or an assistant, and booked instant offers. Each row has the quote number, where it came from, its status and its billing account; for the lane, the price and the booking state of one that has a `rate_request_id`, read that quote request. A `quote_number` is NOT a quote request id. BOOKING_REQUESTED means Freight Right is reviewing the booking; BOOKED means Freight Right confirmed it. Filter by `statuses` and `source`; page with `cursor` = the previous `next_cursor` and the SAME filters. Read-only.",
+      "description": "List quotes in Shipment Manager, newest first: a customer's own — quotes their team or Freight Right created in the portal, quote requests made through the API or an assistant, and booked instant offers — or, for a Freight Right administrator, every organization's. Each row has the quote number, where it came from, its status, its mode and lane, and its billing account; for the price and the booking state of one that has a `rate_request_id`, read that quote request. A `quote_number` is NOT a quote request id. BOOKING_REQUESTED means Freight Right is reviewing the booking; BOOKED means Freight Right confirmed it. Narrow with `statuses`, `source`, `organization` (an id), `search` (text in the organization id or name, or the company name) and `created_from` / `created_to`; page with `cursor` = the previous `next_cursor` and the SAME filters. Read-only.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -1118,6 +1156,59 @@
             ],
             "default": null,
             "description": "Keep only quotes from this source."
+          },
+          "organization": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9_-]{1,64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Keep only quotes billed to this organization id (as freightright_list_billing_organizations or a quote row shows it). A customer can only narrow to their own organizations; an administrator to any."
+          },
+          "search": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Keep only quotes whose billing account contains this text: organization id or name, or company name. Case-insensitive."
+          },
+          "created_from": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Keep only quotes created on or after this day (UTC)."
+          },
+          "created_to": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Keep only quotes created on or before this day (UTC)."
           },
           "limit": {
             "default": 20,
@@ -1350,6 +1441,19 @@
             "default": null,
             "description": "RFC 3339 UTC timestamp, e.g. 2026-09-01T00:00:00Z."
           },
+          "organization": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9_-]{1,64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Only the shipments of this organization, by its id (as freightright_list_billing_organizations or a quote's billing shows it). A customer's connection can only narrow to its own organizations, in the roles it holds for them; a Freight Right administrator's reaches any organization, in any role."
+          },
           "order": {
             "default": "desc",
             "description": "By last update: desc = newest first.",
@@ -1451,7 +1555,7 @@
     },
     {
       "name": "freightright_prepare_rate_request_booking",
-      "description": "Prepare a booking of the offer on a QUOTED quote request and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: only the customer, signed in to Freight Right, can submit it. Read the quote request first with freightright_get_rate_request; pass its id and the `offer_id` of the offer to book. Freight Right refuses the booking if the offer changed since it was read. The link lasts up to 30 minutes; preparing the same pending booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided.",
+      "description": "Prepare a booking of the offer on a QUOTED quote request and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: only the customer, signed in to Freight Right, can submit it. Read the quote request first with freightright_get_rate_request; pass its id and the `offer_id` of the offer to book. Freight Right refuses the booking if the offer changed since it was read. The link lasts up to 30 minutes; preparing the same pending booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided. Only the account that created the request, or a current member of the organization it is billed to, can book it: when the quote request says `may_book: false` this tool refuses, so read it first and do not offer to book what the user cannot.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,

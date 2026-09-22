@@ -41,7 +41,10 @@ The filters worth knowing:
 "Possibly overdue" is `arriving_to` set to a past date with `arrival_recorded=false`.
 
 When `has_more` is true, call again with `cursor` set to `next_cursor` **and the same filters**. Never invent a
-cursor. A shipment nobody can see is not an error — an account sees the shipments of its own organizations.
+cursor. A shipment nobody can see is not an error — a customer's account sees the shipments of its own organizations.
+A Freight Right administrator's connection (`freightright_get_connection_status.role` = `ADMIN`) sees every
+organization's; `organization` — an organization id, as `freightright_list_billing_organizations` or a quote's
+billing shows it — narrows a list or a search to one of them, and is applied only when `applied_filters` confirms it.
 
 ## Estimated is not actual
 

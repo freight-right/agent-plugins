@@ -5,6 +5,22 @@ All notable changes to this plugin are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Freight Right administrators: `connection-and-billing` explains `role: ADMIN` (every organization in reach, the
+  client organization to bill found by `query`), `shipment-tracking` the `organization` filter, `quote-requests` the
+  administrator's draft and the new quote filters, and `booking-handoff` the `may_book` rule.
+- Customers without an organization: billing by company name, spelled out where billing is decided.
+- Three eval cases: an administrator searches then bills the organization found, a company-name account is never
+  asked to pick an organization, and a request the connection may only read is never prepared for booking.
+
+### Changed
+
+- The contract snapshot follows the connector: `freightright_list_billing_organizations` takes `query` and `limit`,
+  `freightright_list_quotes` takes `organization`, `search`, `created_from` and `created_to`,
+  `freightright_list_shipments` and `freightright_find_shipments` take `organization`, and the eval mocks carry
+  `role`, a quote's mode and lane, and a request's `may_book`.
+
 ## [0.1.0]
 
 First release.

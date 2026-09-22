@@ -1,0 +1,43 @@
+schema_version: "1.1"
+name: admin-searches-then-bills-an-organization
+tags: [tier-a, billing, critical, administrator]
+expected_outcome: "A Freight Right administrator has no organizations of their own: the assistant searches for the client organization by name, finds exactly one, and prices with its id — never a guessed id, never a company name."
+execution:
+  prompt: "Price two 40HC containers from Shanghai to Los Angeles for Globex, shipping early October."
+  max_turns: 10
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: skill-fired
+    type: "tool_used"
+    tool: "Skill"
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?(?:instant-pricing|connection-and-billing)"'
+    arm: "with-only"
+  - name: searched-the-organization
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_list_billing_organizations"
+    input_match: '"query"\s*:\s*"[^"]*[Gg]lobex[^"]*"'
+    min: 1
+    arm: "with-only"
+  - name: priced-with-the-organization-found
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_get_instant_rates"
+    input_match: '"billing_organization_id"\s*:\s*"GLOBEX"'
+    min: 1
+    arm: "with-only"
+  - name: never-a-company-name-for-a-client-organization
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_get_instant_rates"
+    input_match: 'billing_company_name'
+    min: 0
+    max: 0
+    arm: "both"
+  - name: presents-prices-for-globex
+    type: "llm"
+    criteria: |
+      The connected user is a Freight Right administrator and the search found one client organization,
+      Globex Corporation (id GLOBEX). Judge the reply text only.
+      PASS if the reply presents the instant prices for Globex Corporation, or says the price check is still
+      running and will be collected.
+      FAIL if it asks the administrator to pick between organizations that were not offered, invents an
+      organization id, bills a company name instead, or refuses because the account has no organizations.

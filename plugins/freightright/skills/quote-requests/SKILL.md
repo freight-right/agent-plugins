@@ -1,6 +1,6 @@
 ---
 name: quote-requests
-description: Freight Right quote requests — ask Freight Right's pricing team for a price that instant rates cannot give. Use for full truckload, Mexico trucking, hazardous or temperature-controlled cargo on a mode that refuses it, oversized or unusual cargo, a lane with no instant offers, or a second opinion on an instant price. Covers previewing what would be sent, submitting it, polling the result, and listing the customer's quotes.
+description: Freight Right quote requests — ask Freight Right's pricing team for a price that instant rates cannot give. Use for full truckload, Mexico trucking, hazardous or temperature-controlled cargo on a mode that refuses it, oversized or unusual cargo, a lane with no instant offers, or a second opinion on an instant price. Covers previewing what would be sent, submitting it, polling the result, who may book it, and listing quotes — a customer's own, or every organization's for a Freight Right administrator.
 ---
 
 # Freight Right: quote requests
@@ -39,6 +39,18 @@ notifies the pricing team and emails the customer.
 
 Whether the customer's assistant asks them to confirm before this is sent depends on their assistant settings, not
 on Freight Right. Say what you are about to send.
+
+A Freight Right administrator submits a quote request **for** a client organization: `billing_organization_id`
+of one found with `freightright_list_billing_organizations` `query`, or `billing_company_name` for a customer who has
+no organization. Their request is an internal draft until Freight Right's team sends it; the organization's own
+users do not see it before then.
+
+## Who may book it
+
+`freightright_get_rate_request.may_book` says whether **this connection** may book the request: the account that
+created it, or a current member of the organization it is billed to. Reading is not booking. When it is `false`,
+say who can book it and do not offer to — `freightright_prepare_rate_request_booking` refuses it anyway. An
+administrator reads every organization's requests and books only the ones their own account created.
 
 ## Give the shipment, or give a price check — never both
 
