@@ -10,7 +10,10 @@ once per lane and cargo, when the customer wants prices — never to explore.
 
 ## Before you price
 
-1. `freightright_get_account` — the billing policy and the remaining allowance. Free.
+1. `freightright_get_account` — the billing policy and the remaining allowance. Free. A Freight Right
+   administrator (`ANY_ORGANIZATION_OR_COMPANY_NAME`) bills a client organization they find with
+   `freightright_list_billing_organizations` `query`, or a company name for a customer who has none; the allowance
+   spent is the administrator's own.
 2. **Resolve every place the customer named** with `freightright_find_locations`. A port or airport is a code
    (`CNSHA`, `USLAX`, `PVG`); a door is a postal code plus a two-letter country code, used exactly as given and
    needing no lookup. **No code is ever guessed** — a wrong one is `location_not_found` and nothing else.

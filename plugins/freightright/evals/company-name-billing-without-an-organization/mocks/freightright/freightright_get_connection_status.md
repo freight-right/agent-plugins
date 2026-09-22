@@ -1,16 +1,7 @@
 {
-  "signed_in_as": "dana@acme-imports.example",
+  "signed_in_as": "owner@solo-trading.example",
   "role": "USER",
-  "organizations": [
-    {
-      "id": "ACMEIMPLAX",
-      "name": "Acme Imports LLC"
-    },
-    {
-      "id": "BRIGHTCOLTD",
-      "name": "Bright Co Ltd"
-    }
-  ],
+  "organizations": [],
   "access": "ok",
   "message": "Connected.",
   "permissions": [

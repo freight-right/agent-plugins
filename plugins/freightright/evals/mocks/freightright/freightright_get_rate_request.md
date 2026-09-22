@@ -4,6 +4,7 @@
   "status": "PENDING",
   "status_means": "With Freight Right’s pricing team.",
   "source": "RATE_REQUEST",
+  "may_book": true,
   "mode": "FTL",
   "lane": {
     "origin": {

@@ -26,6 +26,13 @@ They are not the same list and the counts often differ.
 A customer can see the shipments of an organization they cannot be billed through. Never substitute one list for
 the other, and when you name a set, say which one you mean.
 
+`freightright_get_connection_status.role` says who is connected. `USER` is a customer: the two lists above are
+theirs. `ADMIN` is a **Freight Right administrator**: `organizations` is empty and means *every organization*, not
+none — they read every organization's shipments and quotes, and there is no billing list of their own. They name the
+client organization to bill on each price check or quote request, found with `freightright_list_billing_organizations`
+and its `query` (part of the id or name the user said). When exactly one organization matches what they said, use it;
+when several match, or none, ask — never pick a near miss, and never guess an id.
+
 ## The three billing policies
 
 `freightright_get_account.billing.policy` says which applies.
@@ -34,7 +41,7 @@ the other, and when you name a set, say which one you mean.
 |---|---|
 | `LINKED_ORGANIZATION` | `billing_organization_id` from `freightright_list_billing_organizations` |
 | `COMPANY_NAME` | `billing_company_name` — there is nothing to choose |
-| `ANY_ORGANIZATION_OR_COMPANY_NAME` | Either one is accepted |
+| `ANY_ORGANIZATION_OR_COMPANY_NAME` | Either one is accepted — a Freight Right administrator: `billing_organization_id` of a client organization found with `query`, or `billing_company_name` for a customer without one. Nothing is chosen by default |
 
 Never send both — that is refused. If several organizations exist and none is the default, **ask the customer which
 one** rather than picking. If a call is refused for billing, read the policy again before retrying: it can change,
@@ -51,8 +58,8 @@ Do not report these as the same thing. The customer's fix is different in each c
 | The call returns an **authorization challenge** | The connection exists but was not granted that permission | The customer needs to reconnect and approve the extra permission. Permissions are fixed for the life of a connection |
 | The call says the connection is **paused**, or asks you to reconnect | The grant is paused or dead at Freight Right's end | Paused: the customer resolves it in Shipment Manager. Dead: reconnect |
 
-A read that returns nothing is not any of these. An account only sees its own organizations' data, so an empty
-result is an answer, not an error.
+A read that returns nothing is not any of these. A customer's account only sees its own organizations' data (an
+administrator's sees every organization's), so an empty result is an answer, not an error.
 
 ## Presenting this
 

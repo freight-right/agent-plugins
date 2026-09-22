@@ -19,7 +19,10 @@ Say "I have prepared a booking for you to confirm", never "I booked it".
 | A quote request | `freightright_prepare_rate_request_booking` | `rate_request_id` (`rfq_…`) + `offer_id` (`of_…`) |
 
 The quote-request path is refused unless the request's status is **`QUOTED`**. Check it first and tell the customer
-what the status actually is.
+what the status actually is. It is also refused when the request's `may_book` is `false` — this connection can read
+it but not book it, because booking takes the account that created the request or a current member of the
+organization it is billed to (an administrator books only the requests their own account created). Say who can
+book it instead of preparing a link that would fail.
 
 Both take an optional `reference` (up to 64 characters — the customer's own PO or job number) and `note` (up to
 2,000). Offer these; a reference is what the customer will recognise the shipment by later. If a note is refused as
