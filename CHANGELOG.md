@@ -7,6 +7,11 @@ All notable changes to this plugin are documented here. The format follows
 
 ### Added
 
+- Muse Code 1.3.0: the plugin installs as it is through `muse plugins` (a developer preview behind
+  `MUSE_EXPERIMENTAL_PLUGINS=1`) from either catalog file already here, and the five skills load in every session.
+  Muse Code cannot start an authenticated MCP server from a plugin yet, so the README adds the connector to its
+  settings file and signs in with `muse mcp login`. No file was added: Muse Code reads the portable manifest, and a
+  native manifest beside it would be inactive.
 - Freight Right administrators: `connection-and-billing` explains `role: ADMIN` (every organization in reach, the
   client organization to bill found by `query`), `shipment-tracking` the `organization` filter, `quote-requests` the
   administrator's draft and the new quote filters, and `booking-handoff` the `may_book` rule.

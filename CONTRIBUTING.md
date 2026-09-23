@@ -30,6 +30,7 @@ prefer installing that way.
 | Copilot CLI | `.github/plugin/marketplace.json` | root `plugin.json` |
 | Cursor | `.cursor-plugin/marketplace.json` | `.cursor-plugin/plugin.json` |
 | Grok | none — it scans `plugins/*/` | root `plugin.json` (the portable manifest) |
+| Muse Code | `.agents/plugins/marketplace.json` or `.claude-plugin/marketplace.json`, whichever it finds first | root `plugin.json` (the portable manifest) |
 
 Established by deleting files and reading what each client complained about, not by assumption:
 
@@ -46,8 +47,22 @@ Established by deleting files and reading what each client complained about, not
   directory regardless of what any manifest says. It reads the **portable root `plugin.json`** — adding a
   `.grok-plugin/` directory changes nothing, which is why there isn't one. A file no client reads is worse than a
   fall-through: it implies support that does not exist.
-- **MCP discovery**: every client tested reads `.mcp.json`. The portable `mcp.json` is carried for conformance with
-  the Agent Plugins schema, not because something reads it — Grok, for instance, reports no MCP servers when only
+- **Muse Code** (1.3.0, plugin commands behind `MUSE_EXPERIMENTAL_PLUGINS=1`; the stable and canary channels are
+  both gated) treats a root `plugin.json` carrying the exact Agent Plugins 1.0.0 `$schema` as the authoritative
+  manifest, and any nested `.muse-plugin/`, `.claude-plugin/` or `.codex-plugin/` beside it as an *inactive overlay*
+  — proven by adding a native `.muse-plugin/plugin.json` next to the portable root and watching every one of its keys
+  come back as `agent-overlay-inactive`. A native manifest only takes over when the portable root is absent, and the
+  portable root is what Grok and Cursor read, so there is no `.muse-plugin/` here: it would run nothing. For the
+  catalog Muse Code probes `marketplace.json`, then `.agents/plugins/marketplace.json`, then
+  `.claude-plugin/marketplace.json`; a root `marketplace.json` is deliberately absent because Copilot CLI probes that
+  same name first and would install from a file written for someone else. Sources it accepts: a directory, `owner/repo`,
+  a git URL, `file://`, each optionally `#ref`. The installed plugin's skills load in every session without the flag.
+- **MCP discovery**: every client tested reads `.mcp.json` — except Muse Code, which reads no MCP configuration from
+  an Agent Plugins package at all: the portable `mcp.json` is listed as *"not supported in this release; it stays
+  visible and inactive"*, and in the Claude-compatible family an `http` server is rejected outright (stdio only). Its
+  connector therefore lives in the person's `settings.json` (`mcpServers`, `streamable-http`, then `muse mcp login`),
+  the only place Muse Code lets a server authenticate. The portable `mcp.json` is otherwise carried for conformance
+  with the Agent Plugins schema, not because something reads it — Grok, for instance, reports no MCP servers when only
   the portable file is present.
 
 Each shape differs, so the validator compares what the files **mean** through one accessor per client, never by
@@ -99,13 +114,34 @@ leaves the others pointing at production.
 
 Inside the session, run `/mcp` to authenticate and to confirm the scoped tool prefix before writing eval graders.
 
+For Muse Code the connector is not in the plugin at all, so point a throwaway settings file at development instead
+of editing your own — `muse mcp login` discovers the authorization server, registers a client and prints the
+authorization URL, and `--headless` stops there so nothing is signed in by accident:
+
+```sh
+export XDG_CONFIG_HOME=$(mktemp -d) XDG_DATA_HOME=$(mktemp -d)
+mkdir -p "$XDG_CONFIG_HOME"/muse && cat > "$XDG_CONFIG_HOME"/muse/settings.json <<'EOF'
+{"schema_version": 1, "mcpServers": {"freightright": {"type": "streamable-http",
+  "url": "https://dev-mcp.sm.freightright.com/mcp", "mode": "optional"}}}
+EOF
+MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins marketplace add freightright .
+MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins install freightright@freightright
+muse mcp login freightright --headless
+```
+
 ## Checks
 
 ```sh
 npm run validate                                   # repository invariants
 claude plugin validate ./plugins/freightright --strict
 grok plugin validate ./plugins/freightright        # a second opinion, if you have Grok installed
+MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins validate ./plugins/freightright --json   # a third, if you have Muse Code
+for skill in plugins/freightright/skills/*/; do muse skills validate "$skill" --json; done
 ```
+
+Muse Code reports `valid: true` with a `partial` compatibility summary: the five skills supported, the MCP server
+`unsupported`, plus the `multiple-manifests` and `agent-overlay-inactive` warnings described above. Anything else is
+a regression. The skill validations must be clean (`agent-skills-common-subset`, no diagnostics).
 
 Both run in CI on every push and pull request. The behavioural eval suite is billed and run by a person before a
 release; see `plugins/freightright/evals/README.md`.

@@ -6,13 +6,13 @@
 
 <p>Price, quote, book and track international freight from your AI assistant.</p>
 
-<p><b>Claude Code · Codex · GitHub Copilot CLI · Cursor · Grok</b></p>
+<p><b>Claude Code · Codex · GitHub Copilot CLI · Cursor · Grok · Muse Code</b></p>
 
 <p>
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-1e3063">
   <img alt="Model Context Protocol" src="https://img.shields.io/badge/MCP-streamable%20HTTP-1e3063">
   <img alt="Auth: OAuth 2.1 + PKCE" src="https://img.shields.io/badge/auth-OAuth%202.1%20%2B%20PKCE-1e3063">
-  <img alt="Clients: Claude Code, Codex, Copilot CLI, Cursor, Grok" src="https://img.shields.io/badge/clients-Claude%20Code%20%7C%20Codex%20%7C%20Copilot%20%7C%20Cursor%20%7C%20Grok-1e3063">
+  <img alt="Clients: Claude Code, Codex, Copilot CLI, Cursor, Grok, Muse Code" src="https://img.shields.io/badge/clients-Claude%20Code%20%7C%20Codex%20%7C%20Copilot%20%7C%20Cursor%20%7C%20Grok%20%7C%20Muse-1e3063">
 </p>
 
 </div>
@@ -91,6 +91,50 @@ grok plugin install freightright@agent-plugins --trust
 Grok reads the portable manifest, so it needs nothing specific to it. `--trust` is Grok's own confirmation that a
 plugin may run skills and MCP servers on your machine.
 
+**Muse Code**
+
+Muse Code's plugin commands are a developer preview: in 1.3.0 they run only with `MUSE_EXPERIMENTAL_PLUGINS=1`, and
+only the two install commands need it — an installed plugin loads in every later session without the flag.
+
+```sh
+MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins marketplace add freightright freight-right/agent-plugins
+MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins install freightright@freightright
+```
+
+The install prints a dozen warnings — `multiple-manifests`, `agent-overlay-inactive`, and one `unsupported-capability`
+for the MCP server. They are expected: Muse Code reads the portable manifest, notes the other clients' files beside it,
+and installs the five skills. What it does not do yet is start a plugin's HTTP MCP server — an authenticated server
+belongs in its settings file, in its own words — so add the connector to `~/.config/muse/settings.json` and sign in:
+
+```json
+{
+  "schema_version": 1,
+  "mcpServers": {
+    "freightright": {
+      "type": "streamable-http",
+      "url": "https://mcp.freightright.com/mcp",
+      "mode": "optional"
+    }
+  }
+}
+```
+
+```sh
+muse mcp login freightright
+```
+
+`mode: optional` keeps Muse Code starting when the connector is unreachable. Keep whatever else the file already
+holds, and never put `required` beside `mode` on the same entry — Muse Code drops the whole `mcpServers` member when
+it sees both.
+
+Without the flag, the skills alone can still be installed, one at a time from a clone — `muse skills install` takes a
+local path, not a repository:
+
+```sh
+git clone https://github.com/freight-right/agent-plugins
+for skill in agent-plugins/plugins/freightright/skills/*/; do muse skills install "$skill"; done
+```
+
 **Cursor** — two ways.
 
 *From this repository*, which works as soon as the repository is public:
@@ -114,10 +158,13 @@ install with no URL to paste.
 | Copilot CLI 1.0.87 | Verified | Verified |
 | Cursor 2.2.44 | Verified | Verified |
 | Grok 1.0.40 | Verified | Verified |
+| Muse Code 1.3.0 | Verified, behind `MUSE_EXPERIMENTAL_PLUGINS` | Loaded — listed by `muse skills list`, not yet exercised in a model session |
 
 Each client is given a manifest at the path it looks for, rather than being made to fall through to another
-vendor's directory. Grok is the exception that proves the point: it reads the open
-[Agent Plugins](https://agent-plugins.org) manifest, so it needs nothing of its own.
+vendor's directory. Grok and Muse Code are the exceptions that prove the point: both read the open
+[Agent Plugins](https://agent-plugins.org) manifest — Muse Code reads the Codex or Claude Code catalog as well — so
+neither needs anything of its own. Muse Code installs the skills only: its plugin format cannot carry an authenticated
+MCP server yet, which is why its install ends in a settings entry and a sign-in.
 
 No client has yet completed an OAuth sign-in against the connector, because the production URL this plugin ships
 goes live with the production service. Installing and using the skills is what the table reports.
