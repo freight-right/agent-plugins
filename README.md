@@ -166,8 +166,9 @@ vendor's directory. Grok and Muse Code are the exceptions that prove the point: 
 neither needs anything of its own. Muse Code installs the skills only: its plugin format cannot carry an authenticated
 MCP server yet, which is why its install ends in a settings entry and a sign-in.
 
-No client has yet completed an OAuth sign-in against the connector, because the production URL this plugin ships
-goes live with the production service. Installing and using the skills is what the table reports.
+No client has yet completed an OAuth sign-in against the production connector, because the URL this plugin ships
+goes live with the production service; Muse Code has completed one against the development connector, through
+`muse mcp login`, as a Freight Right administrator. Installing and using the skills is what the table reports.
 
 ## What the connector can do
 
