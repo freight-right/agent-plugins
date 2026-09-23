@@ -1,7 +1,7 @@
 {
   "source": {
     "repository": "freight-right/fr-mcp",
-    "revision": "d748f3e1a4f2a49250a7eb89529053df96124f1d"
+    "revision": "f9defe95e291dc8146f6b3fc7ff1049ad246283b"
   },
   "tools": [
     {
@@ -1496,7 +1496,7 @@
     },
     {
       "name": "freightright_prepare_instant_booking",
-      "description": "Prepare a booking of one offer from a price check and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: no assistant can submit a booking — only the customer, signed in to Freight Right, can, by clicking on that page. Give them the link and tell them what it will book. Needs the `pricing_id` and the `offer_id` of an offer that is still bookable (see `bookable_until`); the price, the carrier and the terms are taken from that offer as it was shown, and Freight Right refuses the booking if anything about it has changed since. The link lasts up to 30 minutes, or until the offer stops being bookable, whichever is sooner; preparing the same PENDING booking again returns the same link and does not extend it. customer decided.",
+      "description": "Prepare a booking of one offer from a price check and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: no assistant can submit a booking — only the customer, signed in to Freight Right, can, by clicking on that page. Give them the link and tell them what it will book. Needs the `pricing_id` and the `offer_id` of an offer that is still bookable (see `bookable_until`); the price, the carrier and the terms are taken from that offer as it was shown, and Freight Right refuses the booking if anything about it has changed since. The link lasts up to 30 minutes, or until the offer stops being bookable, whichever is sooner; preparing the same PENDING booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,

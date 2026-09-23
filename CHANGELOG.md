@@ -3,9 +3,13 @@
 All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
-## [Unreleased]
+## [0.2.0] — 2026-09-23
 
 ### Added
+
+- The connector this plugin ships, `https://mcp.freightright.com/mcp`, is live in production, with the documentation
+  at [developers.freightright.com](https://developers.freightright.com). A staging connector for developers testing
+  an integration is described there.
 
 - Muse Code 1.3.0: the plugin installs as it is through `muse plugins` (a developer preview behind
   `MUSE_EXPERIMENTAL_PLUGINS=1`) from either catalog file already here, and the five skills load in every session.
