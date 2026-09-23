@@ -93,8 +93,8 @@ plugin may run skills and MCP servers on your machine.
 
 **Muse Code**
 
-Muse Code's plugin commands are a developer preview: in 1.3.0 they run only with `MUSE_EXPERIMENTAL_PLUGINS=1`, and
-only the two install commands need it — an installed plugin loads in every later session without the flag.
+Muse Code's plugin commands are a developer preview: in 1.3.0 every `muse plugins` call — install, update, remove —
+runs only with `MUSE_EXPERIMENTAL_PLUGINS=1`. A session loads the installed plugin without the flag.
 
 ```sh
 MUSE_EXPERIMENTAL_PLUGINS=1 muse plugins marketplace add freightright freight-right/agent-plugins
@@ -128,7 +128,7 @@ holds, and never put `required` beside `mode` on the same entry — Muse Code dr
 it sees both.
 
 Without the flag, the skills alone can still be installed, one at a time from a clone — `muse skills install` takes a
-local path, not a repository:
+local path, not a repository. The settings entry and the sign-in above are still needed:
 
 ```sh
 git clone https://github.com/freight-right/agent-plugins
