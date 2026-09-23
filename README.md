@@ -158,7 +158,7 @@ install with no URL to paste.
 | Copilot CLI 1.0.87 | Verified | Verified |
 | Cursor 2.2.44 | Verified | Verified |
 | Grok 1.0.40 | Verified | Verified |
-| Muse Code 1.3.0 | Verified, behind `MUSE_EXPERIMENTAL_PLUGINS` | Loaded — listed by `muse skills list`, not yet exercised in a model session |
+| Muse Code 1.3.0 | Verified, behind `MUSE_EXPERIMENTAL_PLUGINS` | Verified |
 
 Each client is given a manifest at the path it looks for, rather than being made to fall through to another
 vendor's directory. Grok and Muse Code are the exceptions that prove the point: both read the open
