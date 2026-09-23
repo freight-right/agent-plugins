@@ -19,7 +19,7 @@ You can revoke access at any time: **Freight Right → Profile → Connected ass
 
 ## Reporting a vulnerability
 
-Email **security@freightright.com** rather than opening a public issue. Please include what you observed, how to
+Email **support@freightright.com** rather than opening a public issue. Please include what you observed, how to
 reproduce it, and the impact you believe it has. We will acknowledge your report and keep you informed while we
 investigate.
 
