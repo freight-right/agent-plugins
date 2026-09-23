@@ -166,9 +166,11 @@ vendor's directory. Grok and Muse Code are the exceptions that prove the point: 
 neither needs anything of its own. Muse Code installs the skills only: its plugin format cannot carry an authenticated
 MCP server yet, which is why its install ends in a settings entry and a sign-in.
 
-No client has yet completed an OAuth sign-in against the production connector, because the URL this plugin ships
-goes live with the production service; Muse Code has completed one against the development connector, through
-`muse mcp login`, as a Freight Right administrator. Installing and using the skills is what the table reports.
+The production connector the plugin ships, `https://mcp.freightright.com/mcp`, is live: Freight Right's scripted
+canary — a registered MCP client that signs in through the same OAuth flow these clients use — completes the sign-in
+against it as a Freight Right administrator, and Muse Code has completed one interactively against the development
+connector through `muse mcp login`. An interactive sign-in from each client against production is still to be
+recorded here. Installing and using the skills is what the table reports.
 
 ## What the connector can do
 

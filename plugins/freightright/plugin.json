@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "freightright",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Price, quote, book and track international freight through the Freight Right MCP connector — ocean, air and road — with the workflow rules an assistant needs to get it right.",
   "author": {
     "name": "Mostafa Abdo",
