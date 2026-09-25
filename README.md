@@ -137,7 +137,7 @@ for skill in agent-plugins/plugins/freightright/skills/*/; do muse skills instal
 
 **Cursor** — two ways.
 
-*From this repository*, which works as soon as the repository is public:
+*From this repository*:
 
 ```sh
 cursor-agent plugin marketplace add https://github.com/freight-right/agent-plugins
