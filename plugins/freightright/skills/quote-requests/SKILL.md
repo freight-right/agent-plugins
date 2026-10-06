@@ -1,6 +1,6 @@
 ---
 name: quote-requests
-description: Freight Right quote requests — ask Freight Right's pricing team for a price that instant rates cannot give. Use for full truckload, Mexico trucking, hazardous or temperature-controlled cargo on a mode that refuses it, oversized or unusual cargo, a lane with no instant offers, or a second opinion on an instant price. Covers previewing what would be sent, submitting it, polling the result, who may book it, and listing quotes — a customer's own, or every organization's for a Freight Right administrator.
+description: Freight Right quote requests — ask Freight Right's pricing team for a price that instant rates cannot give. Use for full truckload, Mexico trucking, hazardous or temperature-controlled cargo on a mode that refuses it, oversized or unusual cargo, a lane with no instant offers, or a second opinion on an instant price. Covers previewing what would be sent, submitting it, polling the result, who may book it, listing quotes — a customer's own, or every organization's for a Freight Right administrator — and an administrator sharing a quote with e-mail addresses.
 ---
 
 # Freight Right: quote requests
@@ -48,9 +48,28 @@ users do not see it before then.
 ## Who may book it
 
 `freightright_get_rate_request.may_book` says whether **this connection** may book the request: the account that
-created it, or a current member of the organization it is billed to. Reading is not booking. When it is `false`,
+created it, a current member of the organization it is billed to, or an address Freight Right shared its quote with.
+Reading is not booking. When it is `false`,
 say who can book it and do not offer to — `freightright_prepare_rate_request_booking` refuses it anyway. An
 administrator reads every organization's requests and books only the ones their own account created.
+
+## Sharing a quote (Freight Right administrators)
+
+`freightright_share_quote` shares a quote with e-mail addresses: the `quote_number` (an integer from
+`freightright_list_quotes`) and 1 to 20 addresses. Each address then sees the quote once it signs in to Shipment
+Manager with that address — with or without an organization — and can use its approval, booking-request and
+cancellation actions. An administrator's draft stays hidden until it is sent.
+
+- **Only an administrator's connection shares.** On a customer's connection the tool refuses; say that Freight Right
+  shares quotes, and that the customer can ask their Freight Right contact.
+- **Share only the addresses the user named,** and only when they asked: the people behind them see the quote's
+  prices. Whether the user is asked to confirm first depends on their assistant settings.
+- **Sharing sends no e-mail.** To notify someone, the administrator sends the quote from its page in Shipment
+  Manager. An address is removed on that page too — no tool removes one.
+- If one address is not valid, nothing is shared: correct it and send them again. An address the quote already has
+  changes nothing, so a retry is safe.
+
+A quote row with `shared_with_you: true` is one the user sees only because it was shared with them.
 
 ## Give the shipment, or give a price check — never both
 
