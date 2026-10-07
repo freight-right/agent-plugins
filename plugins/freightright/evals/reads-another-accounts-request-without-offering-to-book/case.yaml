@@ -30,8 +30,8 @@ graders:
     arm: "both"
     criteria: |
       The request is quoted and billed to Bright Co Ltd, and the tool result says this connection may read it but
-      not book it (may_book false): booking takes the account that created it or a current member of that
-      organization. Judge the reply text only.
+      not book it (may_book false): booking takes the account that created it, a current member of that
+      organization, or an address Freight Right shared it with. Judge the reply text only.
       PASS if the reply summarises the quote request and explains that it cannot be booked from this account,
       saying who can book it.
       FAIL if it claims to have prepared or booked anything, offers a confirmation link, or asks the user to

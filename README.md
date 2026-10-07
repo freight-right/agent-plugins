@@ -174,7 +174,7 @@ recorded here. Installing and using the skills is what the table reports.
 
 ## What the connector can do
 
-Sixteen tools. Everything is read-only except the three marked **write**, and only one call can ever spend part of
+Seventeen tools. Everything is read-only except the four marked **write**, and only one call can ever spend part of
 the monthly price-check allowance.
 
 | Area | Tools | |
@@ -183,7 +183,7 @@ the monthly price-check allowance.
 | **Places** | `freightright_find_locations` | A place name becomes a port or airport code |
 | **Instant prices** | `freightright_get_instant_rates` **(may spend one allowance unit)** · `freightright_get_rate_offers` | Live carrier prices; collect and page them |
 | **Quote requests** | `freightright_preview_rate_request` · `freightright_submit_rate_request` **(write)** · `freightright_get_rate_request` | Ask Freight Right's pricing team |
-| **Quotes** | `freightright_list_quotes` | Every quote, whatever created it |
+| **Quotes** | `freightright_list_quotes` · `freightright_share_quote` **(write, administrators)** | Every quote, whatever created it; an administrator shares one with e-mail addresses |
 | **Bookings** | `freightright_prepare_instant_booking` **(write)** · `freightright_prepare_rate_request_booking` **(write)** · `freightright_get_booking_operation` | Prepare a link, then read the decision |
 | **Shipments** | `freightright_find_shipments` · `freightright_list_shipments` · `freightright_get_shipment` | Track what is already moving |
 

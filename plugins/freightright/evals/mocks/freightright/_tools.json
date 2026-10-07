@@ -1392,7 +1392,7 @@
     },
     {
       "name": "freightright_prepare_instant_booking",
-      "description": "Prepare a booking of one offer from a price check and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: no assistant can submit a booking — only the customer, signed in to Freight Right, can, by clicking on that page. Give them the link and tell them what it will book. Needs the `pricing_id` and the `offer_id` of an offer that is still bookable (see `bookable_until`); the price, the carrier and the terms are taken from that offer as it was shown, and Freight Right refuses the booking if anything about it has changed since. The link lasts up to 30 minutes, or until the offer stops being bookable, whichever is sooner; preparing the same PENDING booking again returns the same link and does not extend it. customer decided.",
+      "description": "Prepare a booking of one offer from a price check and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: no assistant can submit a booking — only the customer, signed in to Freight Right, can, by clicking on that page. Give them the link and tell them what it will book. Needs the `pricing_id` and the `offer_id` of an offer that is still bookable (see `bookable_until`); the price, the carrier and the terms are taken from that offer as it was shown, and Freight Right refuses the booking if anything about it has changed since. The link lasts up to 30 minutes, or until the offer stops being bookable, whichever is sooner; preparing the same PENDING booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -1442,7 +1442,7 @@
     },
     {
       "name": "freightright_prepare_rate_request_booking",
-      "description": "Prepare a booking of the offer on a QUOTED quote request and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: only the customer, signed in to Freight Right, can submit it. Read the quote request first with freightright_get_rate_request; pass its id and the `offer_id` of the offer to book. Freight Right refuses the booking if the offer changed since it was read. The link lasts up to 30 minutes; preparing the same pending booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided. Only the account that created the request, or a current member of the organization it is billed to, can book it: when the quote request says `may_book: false` this tool refuses, so read it first and do not offer to book what the user cannot.",
+      "description": "Prepare a booking of the offer on a QUOTED quote request and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: only the customer, signed in to Freight Right, can submit it. Read the quote request first with freightright_get_rate_request; pass its id and the `offer_id` of the offer to book. Freight Right refuses the booking if the offer changed since it was read. The link lasts up to 30 minutes; preparing the same pending booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided. Only the account that created the request, a current member of the organization it is billed to, or an address Freight Right shared its quote with can book it: when the quote request says `may_book: false` this tool refuses, so read it first and do not offer to book what the user cannot.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -2284,6 +2284,41 @@
             "description": "The company to bill. REQUIRED when the account bills by company name — its billing policy is COMPANY_NAME, which freightright_get_account reports and which can change; there is then no organization to choose. Give this OR `billing_organization_id`, never both."
           }
         }
+      }
+    },
+    {
+      "name": "freightright_share_quote",
+      "description": "Share a quote with e-mail addresses — a Freight Right administrator's connection only. Each address can then view the quote once it signs in to Shipment Manager with that address, with or without an organization, and use its available approval, booking-request and cancellation actions; an administrator's draft stays hidden until it is sent. The people behind these addresses see the quote's prices, so share only with the addresses the user named, and only when the user asked for it: WHETHER YOUR USER IS ASKED TO CONFIRM BEFORE THIS IS SENT DEPENDS ON THEIR ASSISTANT SETTINGS, NOT ON FREIGHT RIGHT. Sharing sends NO e-mail — to notify someone, the administrator sends the quote from its page in Shipment Manager — and an address is removed on that page only. Give the `quote_number` (from freightright_list_quotes) and 1 to 20 addresses; if one is not a valid address nothing is shared, and an address the quote already has changes nothing.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "quote_number": {
+            "description": "The quote number in Shipment Manager (a quote row's `quote_number`).",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "emails": {
+            "description": "The e-mail addresses to share the quote with, as the user gave them: 1 to 20.",
+            "examples": [
+              [
+                "buyer@example.com"
+              ]
+            ],
+            "items": {
+              "maxLength": 254,
+              "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "quote_number",
+          "emails"
+        ]
       }
     },
     {

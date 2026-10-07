@@ -3,6 +3,15 @@
 All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+### Added
+
+- `freightright_share_quote`: a Freight Right administrator shares a quote with e-mail addresses. `quote-requests`
+  says who may share (an administrator's connection only), that sharing sends no e-mail and that an address is
+  removed on the quote page; `booking-handoff` and `quote-requests` add a shared address to who may book. Contract,
+  mocks and the eval tool list refreshed — seventeen tools.
+
 ## [0.2.0] — 2026-09-23
 
 ### Added
