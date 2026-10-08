@@ -2,6 +2,7 @@
   "name": "freightright",
   "owner": {
     "name": "Freight Right",
+    "email": "support@freightright.com",
     "url": "https://www.freightright.com"
   },
   "description": "Agent plugins for the Freight Right freight forwarding platform.",
@@ -10,8 +11,8 @@
     {
       "name": "freightright",
       "source": "./plugins/freightright",
-      "description": "Price, quote, book and track international freight through the Freight Right MCP connector — ocean, air and road — with the workflow rules an assistant needs to get it right.",
-      "category": "productivity"
+      "description": "Freight rates, quote requests and shipment tracking from your Freight Right account, with skills that keep billing and bookings right.",
+      "category": "Productivity"
     }
   ]
 }

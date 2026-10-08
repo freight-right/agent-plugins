@@ -4,7 +4,7 @@
 
 <h1>Freight Right agent plugins</h1>
 
-<p>Price, quote, book and track international freight from your AI assistant.</p>
+<p>Freight rates, quote requests and shipment tracking from your Freight Right account.</p>
 
 <p><b>Claude Code · Codex · GitHub Copilot CLI · Cursor · Grok · Muse Code</b></p>
 
@@ -146,8 +146,7 @@ cursor-agent plugin marketplace add https://github.com/freight-right/agent-plugi
 Cursor takes a full git URL rather than `owner/repo`, and indexes the default branch unless you pass
 `--git-ref <branch|tag>`. A marketplace is added per account; enable the plugin from the plugin list in Cursor.
 
-*From the Cursor marketplace* — listing pending. The link goes here once it is published, and then it is a one-click
-install with no URL to paste.
+*From the Cursor marketplace*: once the listing is live, install with one click and no URL to paste.
 
 ### Supported clients
 
@@ -211,7 +210,7 @@ shipment milestone semantics, and guides to querying and to pricing — plus rea
 | **LTL** | Pallets or crates by road, US and Canada | Groups of identical pieces, door to door |
 | **FTL** | A full truck, US, Canada and Mexico | Equipment as container sizes |
 
-FCL, LCL, AIR and LTL are priced instantly. **FTL always goes to Freight Right's pricing team**, as does hazardous or temperature-controlled cargo on FCL, and temperature-controlled cargo on LTL.
+Instant rates cover ocean FCL/LCL, air, and LTL in the US and Canada. **FTL and Mexico always go through a quote request**, as does hazardous or temperature-controlled cargo on FCL, and temperature-controlled cargo on LTL.
 
 Insurance is a declared value in USD and exists on FCL, LCL and AIR only. On LTL and FTL, ask for it in a quote
 request note.
