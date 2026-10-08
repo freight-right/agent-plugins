@@ -75,6 +75,8 @@ the earlier result has expired or been evicted and the customer still wants pric
 - It is only valid until its `valid_until`. Never present a price as final after that date.
 - `complete: false` means a source did not answer. No offers with `complete: true` means there is no instant price
   for that lane — offer a quote request.
+- A price check without `bookable_until` cannot be booked online: say so rather than offering to book one of its
+  offers.
 - Amounts are sell prices for this customer, in the offer's currency. **Never add or compare totals across
   currencies.**
 - An empty `not_included` means everything requested was priced. It is a different field from `exclusions`, which

@@ -173,8 +173,8 @@ recorded here. Installing and using the skills is what the table reports.
 
 ## What the connector can do
 
-Seventeen tools. Everything is read-only except the four marked **write**, and only one call can ever spend part of
-the monthly price-check allowance.
+Twenty-nine tools. Everything is read-only except the twelve marked **write**, and only one call can ever spend part
+of the monthly price-check allowance.
 
 | Area | Tools | |
 |---|---|---|
@@ -182,13 +182,14 @@ the monthly price-check allowance.
 | **Places** | `freightright_find_locations` | A place name becomes a port or airport code |
 | **Instant prices** | `freightright_get_instant_rates` **(may spend one allowance unit)** · `freightright_get_rate_offers` | Live carrier prices; collect and page them |
 | **Quote requests** | `freightright_preview_rate_request` · `freightright_submit_rate_request` **(write)** · `freightright_get_rate_request` | Ask Freight Right's pricing team |
-| **Quotes** | `freightright_list_quotes` · `freightright_share_quote` **(write, administrators)** | Every quote, whatever created it; an administrator shares one with e-mail addresses |
+| **Quotes** | `freightright_list_quotes` · `freightright_share_quote` **(write, administrators)** · `freightright_get_quote_offers` **(administrators)** · `freightright_select_quote_offer` **(write, administrators)** · `freightright_send_quote` **(write, administrators)** · `freightright_public_link` **(write, administrators)** · `freightright_change_public_link` **(write, administrators)** | Every quote, whatever created it; an administrator shares one with e-mail addresses, and finishes a draft: its offers, the one chosen, sending it and its public link |
+| **Requests to Freight Right's team** | `freightright_list_requests` · `freightright_create_request_draft` **(write)** · `freightright_update_request_draft` **(write)** · `freightright_preview_request` · `freightright_submit_request` **(write)** · `freightright_get_request` · `freightright_withdraw_request` **(write)** | A spot rate, a contract, booking help, a shipment problem, a correction or a feature, in the customer's own words — sent only after they saw the preview and said yes, answered by e-mail |
 | **Bookings** | `freightright_prepare_instant_booking` **(write)** · `freightright_prepare_rate_request_booking` **(write)** · `freightright_get_booking_operation` | Prepare a link, then read the decision |
 | **Shipments** | `freightright_find_shipments` · `freightright_list_shipments` · `freightright_get_shipment` | Track what is already moving |
 
 The connector also publishes reference documents the assistant reads on its own — the full code and unit vocabulary,
 shipment milestone semantics, and guides to querying and to pricing — plus ready-made starters such as
-*track-shipment*, *arrivals-this-week* and *price-a-container-shipment*.
+*track-shipment*, *arrivals-this-week*, *price-a-container-shipment* and *ask-freight-right*.
 
 ## Freight modes
 
@@ -248,6 +249,7 @@ Even then, a submitted request is **under review**: Freight Right confirms the b
 | `rc_…` | The underlying price call, used when asking the pricing team about a lane already priced |
 | `of_…` | One offer |
 | `rfq_…` | A quote request |
+| `FR-…` | A request to Freight Right's team — not a quote request |
 | A plain integer | A **quote number** shown in Shipment Manager. It is **not** a quote request id |
 | A forwarder reference | A shipment |
 

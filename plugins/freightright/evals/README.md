@@ -65,7 +65,7 @@ that number separately, and never present the package Δ as though it were this 
 ## Layout
 
 - `mocks/freightright/<tool>.md` — one file per tool, shared by every case. **A tool with no mock file is not
-  available to Claude at all**, which is why all seventeen are here.
+  available to Claude at all**, which is why all twenty-nine are here.
 - `mocks/freightright/_tools.json` — a saved `tools/list` response, so mocked tools carry their real descriptions
   and input schemas rather than a permissive placeholder. Regenerate it from `contract/tools.json`.
 - `<case>/mocks/` — overrides for one case, such as a price check that comes back still running.

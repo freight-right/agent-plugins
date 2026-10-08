@@ -1,6 +1,666 @@
 {
   "tools": [
     {
+      "name": "freightright_change_public_link",
+      "description": "Replace or turn off a quote's public link — a Freight Right administrator's connection only. `reset` makes a new URL; `turn_off` stops the link for good. Either way the current URL stops working for EVERYONE who has it, so do this only when the user asks. Turning off works whatever the quote's state.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "quote_number": {
+            "description": "The quote number in Shipment Manager (a quote row's `quote_number`).",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "action": {
+            "description": "reset: a new URL replaces the current one. turn_off: no link any more.",
+            "enum": [
+              "reset",
+              "turn_off"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "quote_number",
+          "action"
+        ]
+      }
+    },
+    {
+      "name": "freightright_create_request_draft",
+      "description": "Start a request to Freight Right's team — a spot rate, a contract inquiry, booking help, a shipment issue, a data correction or a feature request — from the customer's own words (`message`, stored exactly as said) and the details you read from them (the slot arguments; give what the customer said, never a guess). Nothing is sent and nobody is notified: the draft is private until freightright_submit_request. The answer says what Freight Right understood, what is still missing and the ONE question to ask next; fill the answer in with freightright_update_request_draft, then show freightright_preview_request. BEFORE creating one, call freightright_list_requests: never file a duplicate of a request that is still open — continue the open one instead. The reply address is the account's own e-mail and the account is already known, so never ask for it; ask which organization only when the answer lists `organization` in `missing_fields`, and pass `billing_organization_id` from freightright_list_billing_organizations. The same message with the same details within 30 days returns that same request, whatever became of it (the answer says so in `replayed`). Needs a Freight Right account — free: sign up on Shipment Manager's sign-up page, then connect your assistant. A Freight Right administrator files requests for a customer on the staff page, not here. At most 20 drafts per organization per day; the answer says when the limit resets.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "description": "What the customer is asking for. spot-rate: a price for a lane or shipment the instant tools could not answer. contract-inquiry: rates over a period for a volume. booking-help: help with a quote, a quote request or a booking. shipment-issue: a problem with a shipment. data-correction: something recorded wrongly. feature-request: something the customer wishes the product did.",
+            "enum": [
+              "spot-rate",
+              "contract-inquiry",
+              "booking-help",
+              "shipment-issue",
+              "data-correction",
+              "feature-request"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "description": "The customer's words, exactly as they said them — stored as sent and shown to the team. Never a summary of yours.",
+            "maxLength": 4000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "FCL",
+                  "LCL",
+                  "AIR",
+                  "LTL",
+                  "FTL"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "What is being quoted. FCL (full container load — ocean, priced by the container) · LCL (less than container load — ocean, priced by weight or volume, whichever is greater) · AIR (air freight, airport to airport or door to door) · LTL (less than truckload — road, door to door within the US, within Canada, and between them) · FTL (full truckload — road, door to door in the US, Canada and Mexico; quote requests only, never priced instantly). Each mode takes different cargo — FCL: needs containers, direction; refuses hazardous and temperature-controlled cargo — ask for a quote request instead · LCL: needs pieces OR totals, direction · AIR: needs pieces OR totals, direction · LTL: needs pieces, with the dimensions and weight of each handling unit, a DOOR at both ends; refuses direction, incoterm, port charges, customs and insurance — the API has no place for them on a truckload lane; ask for insurance in a quote request note · FTL: needs containers, a DOOR at both ends; refuses direction, incoterm, port charges, customs and insurance; and it is never priced instantly — it is a quote request. FTL takes its equipment in the `containers` argument, as container sizes — the current API representation, and the same choices as the Shipment Manager trucking form. Anything else about the truck (trailer type, weight, loading) goes in the quote request note."
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "A place as the customer said it. Give a port or airport `code` when one is known, else the `name` (and the\n`country_code` when it is ambiguous), or a door as `postal_code` + `country_code` (+ `city`); `as_said` keeps the\ncustomer's own words when none of those fits. Freight Right resolves it and asks back only for an unknown code.",
+                "properties": {
+                  "code": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[A-Za-z0-9]{3,6}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A UN/LOCODE (CNSHA) or an airport IATA code (PVG)."
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The port, airport or city name."
+                  },
+                  "country_code": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[A-Za-z]{2}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "ISO 3166-1 alpha-2 country code."
+                  },
+                  "postal_code": {
+                    "anyOf": [
+                      {
+                        "maxLength": 12,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A door: its postal code."
+                  },
+                  "city": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A door: its city."
+                  },
+                  "as_said": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The place in the customer's words, when nothing above fits."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Where it ships from. spot-rate, contract-inquiry, booking-help."
+          },
+          "destination": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "A place as the customer said it. Give a port or airport `code` when one is known, else the `name` (and the\n`country_code` when it is ambiguous), or a door as `postal_code` + `country_code` (+ `city`); `as_said` keeps the\ncustomer's own words when none of those fits. Freight Right resolves it and asks back only for an unknown code.",
+                "properties": {
+                  "code": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[A-Za-z0-9]{3,6}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A UN/LOCODE (CNSHA) or an airport IATA code (PVG)."
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The port, airport or city name."
+                  },
+                  "country_code": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[A-Za-z]{2}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "ISO 3166-1 alpha-2 country code."
+                  },
+                  "postal_code": {
+                    "anyOf": [
+                      {
+                        "maxLength": 12,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A door: its postal code."
+                  },
+                  "city": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A door: its city."
+                  },
+                  "as_said": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The place in the customer's words, when nothing above fits."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Where it ships to. spot-rate, contract-inquiry, booking-help."
+          },
+          "containers": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "description": "20GP, 40GP, 40HC (high cube) or 45HC.",
+                      "enum": [
+                        "20GP",
+                        "40GP",
+                        "40HC",
+                        "45HC"
+                      ],
+                      "type": "string"
+                    },
+                    "quantity": {
+                      "description": "Number of containers of this type.",
+                      "maximum": 50,
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "quantity"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate, FCL or FTL: one entry per container type, quantities combined; at most 10 entries."
+          },
+          "cargo": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "Loose cargo (LCL, AIR, LTL): whatever the customer gave — every field optional, the team asks for the rest.",
+                "properties": {
+                  "description": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "What the cargo is and how it is packed."
+                  },
+                  "pieces": {
+                    "anyOf": [
+                      {
+                        "maximum": 100000,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "How many pieces."
+                  },
+                  "weight": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "value": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "maximum": 1000000,
+                                "type": "number"
+                              },
+                              {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                              }
+                            ],
+                            "description": "The gross weight."
+                          },
+                          "unit": {
+                            "description": "KG or LB.",
+                            "enum": [
+                              "KG",
+                              "LB"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "unit"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Total gross weight."
+                  },
+                  "volume": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "value": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "maximum": 1000000,
+                                "type": "number"
+                              },
+                              {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                              }
+                            ],
+                            "description": "The volume."
+                          },
+                          "unit": {
+                            "description": "CBM or CFT.",
+                            "enum": [
+                              "CBM",
+                              "CFT"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "unit"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Total volume."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate, LCL, AIR or LTL: the loose cargo, as far as the customer said."
+          },
+          "ship_window_from": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate: first day the cargo can ship, YYYY-MM-DD."
+          },
+          "ship_window_to": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate: last day it should ship, YYYY-MM-DD."
+          },
+          "ship_window_text": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate: the timing in the customer's words (\"next 2 months\")."
+          },
+          "commodity": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate and contract-inquiry: what is being shipped, in a few words.",
+            "examples": [
+              "Office chairs"
+            ]
+          },
+          "incoterm": {
+            "anyOf": [
+              {
+                "enum": [
+                  "EXW",
+                  "FCA",
+                  "FAS",
+                  "FOB",
+                  "CFR",
+                  "CIF",
+                  "CPT",
+                  "CIP",
+                  "DAP",
+                  "DPU",
+                  "DDP"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate, when the customer named one."
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate: anything else the team should know that the fields cannot say."
+          },
+          "annual_volume": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "contract-inquiry: the volume over the period, in words (\"40 x 40HC a year\")."
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "contract-inquiry: when the contract should start, YYYY-MM-DD."
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "booking-help or data-correction: the quote number, rfq_… id, rc_… id or shipment reference it is about. shipment-issue: the shipment reference or a container number."
+          },
+          "cargo_ready_date": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "booking-help: when the cargo is ready, YYYY-MM-DD."
+          },
+          "needed_by": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "shipment-issue: by when, YYYY-MM-DD."
+          },
+          "issue_type": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "shipment-issue: the problem in a few words (\"held at terminal\")."
+          },
+          "field": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "data-correction: what is recorded wrongly."
+          },
+          "correct_value": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "data-correction: what it should say instead."
+          },
+          "billing_organization_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9_]{1,64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The organization to price and bill under, as listed by freightright_list_billing_organizations. Omit it to use the default. Give this OR `billing_company_name`, never both.",
+            "examples": [
+              "ACMEIMPLAX"
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "message"
+        ]
+      }
+    },
+    {
       "name": "freightright_find_locations",
       "description": "Turn a place the customer NAMED into the code a price check needs. Every ocean and air lane here is a PORT `code` — a UN/LOCODE like CNSHA, or an airport IATA code like PVG — and guessing one is how a price check fails with `location_not_found`. Search by city, port name or partial code; an exact code match comes first. A city can have both a seaport and an airport: use `airports` to narrow it, and ask the customer which they mean when two are plausible. A DOOR needs no lookup — it is a postal code and a country. Needs any one rates permission. Reference data: free, changes nothing, spends no part of the price-check allowance.",
       "inputSchema": {
@@ -114,7 +774,7 @@
     },
     {
       "name": "freightright_get_account",
-      "description": "Show what this AI-assistant connection may do in the Freight Right rates API — instant prices, quote requests, booking requests — its limits and how much of them is used this month, and how billing works for this customer (an organization to choose, or a company name to give). Call it before the first price check or quote request of a conversation, and whenever a Freight Right tool says a limit was reached or something is not available. Needs any one rates permission. Takes no arguments; read-only.",
+      "description": "Show what this AI-assistant connection may do in the Freight Right rates API — instant prices, quote requests, booking requests, requests to Freight Right's team — its limits and how much of them is used this month, and how billing works for this customer (an organization to choose, or a company name to give). Call it before the first price check or quote request of a conversation, and whenever a Freight Right tool says a limit was reached or something is not available. Needs any one rates permission. Takes no arguments; read-only.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -887,6 +1547,24 @@
       }
     },
     {
+      "name": "freightright_get_quote_offers",
+      "description": "List the offers of a draft quote, as its customer would see them, cheapest first — a Freight Right administrator's connection only. The first time, Freight Right prices the quote, which can take up to a minute for a door delivery; this waits up to 40 seconds and otherwise says it is still pricing (ask again). A quote that already has its offer, or is no longer a draft, has nothing to list. Show the offers to the user and select one only after they choose (freightright_select_quote_offer).",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "quote_number": {
+            "description": "The quote number in Shipment Manager (a quote row's `quote_number`).",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "quote_number"
+        ]
+      }
+    },
+    {
       "name": "freightright_get_rate_offers",
       "description": "Read the result of a price check by its `pricing_id` (from freightright_get_instant_rates): collect it when the answer was `status: PRICING`, page through the offers with `offset`, or get every charge of one offer with `offer_id`. This never prices again and spends nothing of the allowance. Results are kept for a short time (at most until the offers stop being bookable); after that, price again. Read-only.",
       "inputSchema": {
@@ -946,6 +1624,24 @@
         },
         "required": [
           "rate_request_id"
+        ]
+      }
+    },
+    {
+      "name": "freightright_get_request",
+      "description": "Read one request to Freight Right's team: its status, what was understood, the team's answer once one was e-mailed, the confirmation e-mail, and the history (events and kinds of actor, never a staff name). A customer reads their own requests and their organizations'; a Freight Right administrator reads every organization's. Reading is never authority to act: only the creator updates, submits or withdraws. Read-only.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "description": "The request id (FR-…), from a draft or a list row.",
+            "pattern": "^FR-\\d{1,12}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id"
         ]
       }
     },
@@ -1123,6 +1819,85 @@
             ],
             "default": null,
             "description": "Keep only quotes created on or before this day (UTC)."
+          },
+          "limit": {
+            "default": 20,
+            "description": "Rows per page.",
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "cursor": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "`next_cursor` of the previous page, with the same filters."
+          }
+        }
+      }
+    },
+    {
+      "name": "freightright_list_requests",
+      "description": "List the requests to Freight Right's team this account can see, newest first: a customer's own and their organizations', every organization's for a Freight Right administrator. Call it BEFORE creating a draft: an open request (submitted, triaged or in_progress) on the same ask is continued, never duplicated. Narrow with `statuses` and `kinds`; page with `cursor` = the previous `next_cursor` and the SAME filters. Read-only.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "statuses": {
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "draft",
+                    "submitted",
+                    "triaged",
+                    "in_progress",
+                    "responded",
+                    "closed",
+                    "withdrawn"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 7,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Keep only these statuses. Omit for every status; `submitted`, `triaged` and `in_progress` are \"open\"."
+          },
+          "kinds": {
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "spot-rate",
+                    "contract-inquiry",
+                    "booking-help",
+                    "shipment-issue",
+                    "data-correction",
+                    "feature-request"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 6,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Keep only these kinds."
           },
           "limit": {
             "default": 20,
@@ -1392,7 +2167,7 @@
     },
     {
       "name": "freightright_prepare_instant_booking",
-      "description": "Prepare a booking of one offer from a price check and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: no assistant can submit a booking — only the customer, signed in to Freight Right, can, by clicking on that page. Give them the link and tell them what it will book. Needs the `pricing_id` and the `offer_id` of an offer that is still bookable (see `bookable_until`); the price, the carrier and the terms are taken from that offer as it was shown, and Freight Right refuses the booking if anything about it has changed since. The link lasts up to 30 minutes, or until the offer stops being bookable, whichever is sooner; preparing the same PENDING booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided.",
+      "description": "Prepare a booking of one offer from a price check and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: no assistant can submit a booking — only the customer, signed in to Freight Right, can, by clicking on that page. Give them the link and tell them what it will book. Needs the `pricing_id` and the `offer_id` of an offer that is still bookable: a price check without `bookable_until`, or whose `bookable_until` has passed, is refused and nothing is prepared. The price, the carrier and the terms are taken from that offer as it was shown, and Freight Right refuses the booking if anything about it has changed since. The link lasts up to 30 minutes, or until the offer stops being bookable, whichever is sooner; preparing the same PENDING booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -2287,8 +3062,110 @@
       }
     },
     {
+      "name": "freightright_preview_request",
+      "description": "Show exactly what submitting a request would send — the confirmation e-mail the customer receives, what the team gets, where replies go — WITHOUT sending anything. Read-only. Show it to the customer and ask whether to send THIS version; a submission carries the `revision` shown here. For a request already submitted it shows what was sent.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "description": "The request id (FR-…), from a draft or a list row.",
+            "pattern": "^FR-\\d{1,12}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id"
+        ]
+      }
+    },
+    {
+      "name": "freightright_public_link",
+      "description": "Get a quote's public read-only link, making it if the quote has none — a Freight Right administrator's connection only. Anyone holding the URL sees the quote without signing in, including later changes, until its offer expires or the link is turned off; give it only to whom the user names. It needs a sent quote with a valid offer (freightright_send_quote first). Calling it again returns the same link.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "quote_number": {
+            "description": "The quote number in Shipment Manager (a quote row's `quote_number`).",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "quote_number"
+        ]
+      }
+    },
+    {
+      "name": "freightright_select_quote_offer",
+      "description": "Make one of a draft quote's offers its offer — a Freight Right administrator's connection only. Give the `offer_id` and `revision` exactly as freightright_get_quote_offers listed them, and only the offer the user chose: tell them its carrier and total first. WHETHER YOUR USER IS ASKED TO CONFIRM BEFORE THIS IS SENT DEPENDS ON THEIR ASSISTANT SETTINGS, NOT ON FREIGHT RIGHT. A quote keeps the first offer selected; changing it is done on the quote page in Shipment Manager. If the offer changed or is no longer listed, list the offers again. The quote stays a draft until it is sent.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "quote_number": {
+            "description": "The quote number in Shipment Manager (a quote row's `quote_number`).",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "offer_id": {
+            "description": "The offer_id, as listed.",
+            "maxLength": 40,
+            "minLength": 3,
+            "type": "string"
+          },
+          "revision": {
+            "description": "The revision, as listed.",
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "quote_number",
+          "offer_id",
+          "revision"
+        ]
+      }
+    },
+    {
+      "name": "freightright_send_quote",
+      "description": "Send a quote to its customer, as Send to Customer does in Shipment Manager — a Freight Right administrator's connection only. A draft becomes pending the customer's approval. `recipients` receive the quotation e-mail with the PDF, and each must already be one of the addresses the quote is shared with (freightright_share_quote first); with no recipients nothing is e-mailed. Send only when the user asked, to the people they named: WHETHER YOUR USER IS ASKED TO CONFIRM BEFORE THIS IS SENT DEPENDS ON THEIR ASSISTANT SETTINGS, NOT ON FREIGHT RIGHT. The quote needs its offer, still valid. A quote already sent is sent again only to named recipients.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "quote_number": {
+            "description": "The quote number in Shipment Manager (a quote row's `quote_number`).",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "recipients": {
+            "default": [],
+            "description": "The e-mail addresses that receive the quotation e-mail: 0 to 20, each already shared with the quote. Empty: send without any e-mail.",
+            "examples": [
+              [
+                "buyer@example.com"
+              ]
+            ],
+            "items": {
+              "maxLength": 254,
+              "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "type": "array"
+          }
+        },
+        "required": [
+          "quote_number"
+        ]
+      }
+    },
+    {
       "name": "freightright_share_quote",
-      "description": "Share a quote with e-mail addresses — a Freight Right administrator's connection only. Each address can then view the quote once it signs in to Shipment Manager with that address, with or without an organization, and use its available approval, booking-request and cancellation actions; an administrator's draft stays hidden until it is sent. The people behind these addresses see the quote's prices, so share only with the addresses the user named, and only when the user asked for it: WHETHER YOUR USER IS ASKED TO CONFIRM BEFORE THIS IS SENT DEPENDS ON THEIR ASSISTANT SETTINGS, NOT ON FREIGHT RIGHT. Sharing sends NO e-mail — to notify someone, the administrator sends the quote from its page in Shipment Manager — and an address is removed on that page only. Give the `quote_number` (from freightright_list_quotes) and 1 to 20 addresses; if one is not a valid address nothing is shared, and an address the quote already has changes nothing.",
+      "description": "Share a quote with e-mail addresses — a Freight Right administrator's connection only. Each address can then view the quote once it signs in to Shipment Manager with that address, with or without an organization, and use its available approval, booking-request and cancellation actions; an administrator's draft stays hidden until it is sent. The people behind these addresses see the quote's prices, so share only with the addresses the user named, and only when the user asked for it: WHETHER YOUR USER IS ASKED TO CONFIRM BEFORE THIS IS SENT DEPENDS ON THEIR ASSISTANT SETTINGS, NOT ON FREIGHT RIGHT. Sharing sends NO e-mail — to notify someone, send the quote to them (freightright_send_quote) — and an address is removed on the quote page only. Give the `quote_number` (from freightright_list_quotes) and 1 to 20 addresses; if one is not a valid address nothing is shared, and an address the quote already has changes nothing.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -3115,6 +3992,723 @@
             "description": "The company to bill. REQUIRED when the account bills by company name — its billing policy is COMPANY_NAME, which freightright_get_account reports and which can change; there is then no organization to choose. Give this OR `billing_organization_id`, never both."
           }
         }
+      }
+    },
+    {
+      "name": "freightright_submit_request",
+      "description": "Send a draft to Freight Right's team: the request is queued, the customer gets a confirmation e-mail (the thread the team answers in) and the team is pinged. Call it ONLY after the customer has seen the preview and explicitly said to send THAT version; pass that preview's `revision` — a request that changed since is refused. Never submit on your own initiative, never to save a step, and never a duplicate of an open request. WHETHER YOUR USER IS ASKED TO CONFIRM BEFORE THIS IS SENT DEPENDS ON THEIR ASSISTANT SETTINGS, NOT ON FREIGHT RIGHT: their explicit yes in the conversation is what authorizes it. A draft with `blocking_fields` is refused with what is missing. At most 5 submissions per organization per day. Submitting the same revision again returns the same answer.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "description": "The request id (FR-…), from a draft or a list row.",
+            "pattern": "^FR-\\d{1,12}$",
+            "type": "string"
+          },
+          "revision": {
+            "description": "REQUIRED: the `revision` of the last answer you saw for this request. A draft that changed since is refused.",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "request_id",
+          "revision"
+        ]
+      }
+    },
+    {
+      "name": "freightright_update_request_draft",
+      "description": "Fill in or correct a draft request with what the customer answered. Drafts only: a submitted request is not changed here. Pass the `revision` of the last answer: a draft that changed since is refused, read it again — the answer then shows its current state, so a retried update never applies twice. A slot not given is unchanged; name slots to empty in `clear`; `message` is appended to what the customer said before, never a replacement. The slot arguments are the same as on creation, and only those of the request's kind apply. Nothing is sent and nobody is notified.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "description": "The request id (FR-…), from a draft or a list row.",
+            "pattern": "^FR-\\d{1,12}$",
+            "type": "string"
+          },
+          "revision": {
+            "description": "REQUIRED: the `revision` of the last answer you saw for this request. A draft that changed since is refused.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "More of the customer's words, appended to what they said before (never a replacement)."
+          },
+          "clear": {
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "mode",
+                    "origin",
+                    "destination",
+                    "containers",
+                    "cargo",
+                    "ship_window",
+                    "commodity",
+                    "incoterm",
+                    "notes",
+                    "annual_volume",
+                    "start_date",
+                    "reference",
+                    "cargo_ready_date",
+                    "shipment_reference",
+                    "needed_by",
+                    "issue_type",
+                    "field",
+                    "correct_value"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Slots to empty, by the names the answer's `slots` uses. A slot not named here and not given again is unchanged."
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "FCL",
+                  "LCL",
+                  "AIR",
+                  "LTL",
+                  "FTL"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "What is being quoted. FCL (full container load — ocean, priced by the container) · LCL (less than container load — ocean, priced by weight or volume, whichever is greater) · AIR (air freight, airport to airport or door to door) · LTL (less than truckload — road, door to door within the US, within Canada, and between them) · FTL (full truckload — road, door to door in the US, Canada and Mexico; quote requests only, never priced instantly). Each mode takes different cargo — FCL: needs containers, direction; refuses hazardous and temperature-controlled cargo — ask for a quote request instead · LCL: needs pieces OR totals, direction · AIR: needs pieces OR totals, direction · LTL: needs pieces, with the dimensions and weight of each handling unit, a DOOR at both ends; refuses direction, incoterm, port charges, customs and insurance — the API has no place for them on a truckload lane; ask for insurance in a quote request note · FTL: needs containers, a DOOR at both ends; refuses direction, incoterm, port charges, customs and insurance; and it is never priced instantly — it is a quote request. FTL takes its equipment in the `containers` argument, as container sizes — the current API representation, and the same choices as the Shipment Manager trucking form. Anything else about the truck (trailer type, weight, loading) goes in the quote request note."
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "A place as the customer said it. Give a port or airport `code` when one is known, else the `name` (and the\n`country_code` when it is ambiguous), or a door as `postal_code` + `country_code` (+ `city`); `as_said` keeps the\ncustomer's own words when none of those fits. Freight Right resolves it and asks back only for an unknown code.",
+                "properties": {
+                  "code": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[A-Za-z0-9]{3,6}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A UN/LOCODE (CNSHA) or an airport IATA code (PVG)."
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The port, airport or city name."
+                  },
+                  "country_code": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[A-Za-z]{2}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "ISO 3166-1 alpha-2 country code."
+                  },
+                  "postal_code": {
+                    "anyOf": [
+                      {
+                        "maxLength": 12,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A door: its postal code."
+                  },
+                  "city": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A door: its city."
+                  },
+                  "as_said": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The place in the customer's words, when nothing above fits."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Where it ships from. spot-rate, contract-inquiry, booking-help."
+          },
+          "destination": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "A place as the customer said it. Give a port or airport `code` when one is known, else the `name` (and the\n`country_code` when it is ambiguous), or a door as `postal_code` + `country_code` (+ `city`); `as_said` keeps the\ncustomer's own words when none of those fits. Freight Right resolves it and asks back only for an unknown code.",
+                "properties": {
+                  "code": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[A-Za-z0-9]{3,6}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A UN/LOCODE (CNSHA) or an airport IATA code (PVG)."
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The port, airport or city name."
+                  },
+                  "country_code": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[A-Za-z]{2}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "ISO 3166-1 alpha-2 country code."
+                  },
+                  "postal_code": {
+                    "anyOf": [
+                      {
+                        "maxLength": 12,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A door: its postal code."
+                  },
+                  "city": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "A door: its city."
+                  },
+                  "as_said": {
+                    "anyOf": [
+                      {
+                        "maxLength": 120,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The place in the customer's words, when nothing above fits."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Where it ships to. spot-rate, contract-inquiry, booking-help."
+          },
+          "containers": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "description": "20GP, 40GP, 40HC (high cube) or 45HC.",
+                      "enum": [
+                        "20GP",
+                        "40GP",
+                        "40HC",
+                        "45HC"
+                      ],
+                      "type": "string"
+                    },
+                    "quantity": {
+                      "description": "Number of containers of this type.",
+                      "maximum": 50,
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "quantity"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate, FCL or FTL: one entry per container type, quantities combined; at most 10 entries."
+          },
+          "cargo": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "Loose cargo (LCL, AIR, LTL): whatever the customer gave — every field optional, the team asks for the rest.",
+                "properties": {
+                  "description": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "What the cargo is and how it is packed."
+                  },
+                  "pieces": {
+                    "anyOf": [
+                      {
+                        "maximum": 100000,
+                        "minimum": 1,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "How many pieces."
+                  },
+                  "weight": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "value": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "maximum": 1000000,
+                                "type": "number"
+                              },
+                              {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                              }
+                            ],
+                            "description": "The gross weight."
+                          },
+                          "unit": {
+                            "description": "KG or LB.",
+                            "enum": [
+                              "KG",
+                              "LB"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "unit"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Total gross weight."
+                  },
+                  "volume": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "value": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "maximum": 1000000,
+                                "type": "number"
+                              },
+                              {
+                                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                                "type": "string"
+                              }
+                            ],
+                            "description": "The volume."
+                          },
+                          "unit": {
+                            "description": "CBM or CFT.",
+                            "enum": [
+                              "CBM",
+                              "CFT"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "unit"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Total volume."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate, LCL, AIR or LTL: the loose cargo, as far as the customer said."
+          },
+          "ship_window_from": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate: first day the cargo can ship, YYYY-MM-DD."
+          },
+          "ship_window_to": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate: last day it should ship, YYYY-MM-DD."
+          },
+          "ship_window_text": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate: the timing in the customer's words (\"next 2 months\")."
+          },
+          "commodity": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate and contract-inquiry: what is being shipped, in a few words.",
+            "examples": [
+              "Office chairs"
+            ]
+          },
+          "incoterm": {
+            "anyOf": [
+              {
+                "enum": [
+                  "EXW",
+                  "FCA",
+                  "FAS",
+                  "FOB",
+                  "CFR",
+                  "CIF",
+                  "CPT",
+                  "CIP",
+                  "DAP",
+                  "DPU",
+                  "DDP"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate, when the customer named one."
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "spot-rate: anything else the team should know that the fields cannot say."
+          },
+          "annual_volume": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "contract-inquiry: the volume over the period, in words (\"40 x 40HC a year\")."
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "contract-inquiry: when the contract should start, YYYY-MM-DD."
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "booking-help or data-correction: the quote number, rfq_… id, rc_… id or shipment reference it is about. shipment-issue: the shipment reference or a container number."
+          },
+          "cargo_ready_date": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "booking-help: when the cargo is ready, YYYY-MM-DD."
+          },
+          "needed_by": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "shipment-issue: by when, YYYY-MM-DD."
+          },
+          "issue_type": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "shipment-issue: the problem in a few words (\"held at terminal\")."
+          },
+          "field": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "data-correction: what is recorded wrongly."
+          },
+          "correct_value": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "data-correction: what it should say instead."
+          },
+          "billing_organization_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9_]{1,64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The organization to price and bill under, as listed by freightright_list_billing_organizations. Omit it to use the default. Give this OR `billing_company_name`, never both.",
+            "examples": [
+              "ACMEIMPLAX"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "revision"
+        ]
+      }
+    },
+    {
+      "name": "freightright_withdraw_request",
+      "description": "Withdraw a request to Freight Right's team: a draft, or a submitted request the team has not answered yet — only when they asked for it. The record only: nothing not yet sent goes out and the team stops working on it, but an e-mail already delivered is not unsent. A request already answered or closed cannot be withdrawn — the customer replies to the team's e-mail instead. Withdrawing a withdrawn request changes nothing.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "description": "The request id (FR-…), from a draft or a list row.",
+            "pattern": "^FR-\\d{1,12}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id"
+        ]
       }
     }
   ]

@@ -10,7 +10,35 @@ All notable changes to this plugin are documented here. The format follows
 - `freightright_share_quote`: a Freight Right administrator shares a quote with e-mail addresses. `quote-requests`
   says who may share (an administrator's connection only), that sharing sends no e-mail and that an address is
   removed on the quote page; `booking-handoff` and `quote-requests` add a shared address to who may book. Contract,
-  mocks and the eval tool list refreshed — seventeen tools.
+  mocks and the eval tool list refreshed.
+- A Freight Right administrator finishes a draft quote: `freightright_get_quote_offers`,
+  `freightright_select_quote_offer`, `freightright_send_quote`, `freightright_public_link` and
+  `freightright_change_public_link`. `quote-requests` gives the order — its offers, the one the user chose, sharing,
+  sending, the public link — each step only when the user asks; that a quote keeps the first offer selected, that the
+  quotation e-mail goes only to addresses the quote is shared with, that anyone holding the public link sees the
+  quote, and that resetting or turning off the link stops it for everyone who has it.
+- Requests to Freight Right's team — a spot rate, a contract inquiry, booking help, a shipment issue, a data
+  correction or a feature request, in the customer's own words: `freightright_list_requests`,
+  `freightright_create_request_draft`, `freightright_update_request_draft`, `freightright_preview_request`,
+  `freightright_submit_request`, `freightright_get_request` and `freightright_withdraw_request`. `quote-requests`
+  says to list first and never file a duplicate of an open request, that a draft is private and notifies nobody, to
+  pass the customer's own words and ask one question at a time — which organization only when it is missing — to
+  submit only after the customer said to send the previewed version, with its revision, that a changed draft is
+  refused, and to withdraw only when asked, knowing a delivered e-mail is not unsent; that the team answers by
+  e-mail, that a Freight Right account is needed, that an administrator's connection files none, and the daily
+  limits. `connection-and-billing` says what an administrator's connection does with quotes and requests. Contract,
+  mocks and the eval tool list refreshed — twenty-nine tools.
+
+### Changed
+
+- `freightright_prepare_instant_booking` refuses a price check without `bookable_until`, or past it, and prepares
+  nothing: `booking-handoff` and `instant-pricing` say so.
+- `freightright_share_quote` sends people to `freightright_send_quote` to notify them; `quote-requests` and the mock
+  follow.
+- The contract snapshot is exported with the connector's `requests` feature on, and `scripts/export_contract.py`
+  writes whole numbers as `JSON.stringify` does (`5000`, not `5000.0`), so its output passes the validator.
+  `freightright_get_account` now covers requests to Freight Right's team, and the connector offers the prompt
+  `ask-freight-right`.
 
 ## [0.2.0] — 2026-09-23
 

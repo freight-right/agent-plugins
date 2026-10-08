@@ -33,6 +33,9 @@ client organization to bill on each price check or quote request, found with `fr
 and its `query` (part of the id or name the user said). When exactly one organization matches what they said, use it;
 when several match, or none, ask — never pick a near miss, and never guess an id.
 
+An administrator's connection also shares quotes and finishes draft quotes. It reads every organization's requests
+to Freight Right's team but files none: staff file for a customer on the staff page.
+
 ## The three billing policies
 
 `freightright_get_account.billing.policy` says which applies.

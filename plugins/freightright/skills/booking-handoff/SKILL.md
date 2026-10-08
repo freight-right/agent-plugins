@@ -18,6 +18,11 @@ Say "I have prepared a booking for you to confirm", never "I booked it".
 | An instant price check | `freightright_prepare_instant_booking` | `pricing_id` (`pj_…`) + `offer_id` (`of_…`) |
 | A quote request | `freightright_prepare_rate_request_booking` | `rate_request_id` (`rfq_…`) + `offer_id` (`of_…`) |
 
+The instant path needs an offer that is still bookable: **a price check without `bookable_until`, or whose
+`bookable_until` has passed, is refused and nothing is prepared.** Without one, Freight Right did not keep the offers
+for booking — they can be shown but not booked online, so do not offer a link: price the lane again later or, only
+if the customer asks for it, send a quote request. Once it has passed, price again and book from the new price check.
+
 The quote-request path is refused unless the request's status is **`QUOTED`**. Check it first and tell the customer
 what the status actually is. It is also refused when the request's `may_book` is `false` — this connection can read
 it but not book it, because booking takes the account that created the request, a current member of the
@@ -37,7 +42,7 @@ revision. If the offer has changed or expired upstream, the booking is refused r
 | Time | What it is |
 |---|---|
 | The link's `expires_at` | Up to **30 minutes** from preparing, cut short if the offer stops being bookable sooner |
-| `bookable_until` | When the offer stops being bookable at all |
+| `bookable_until` | When the offer stops being bookable at all. A price check without one cannot be booked online |
 | The offer's `valid_until` | A **date**, after which the price is no longer valid |
 
 Show the link's deadline prominently, with its timezone. Never let "price valid until" imply the link still works.
