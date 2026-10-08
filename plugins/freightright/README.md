@@ -13,7 +13,7 @@ Then run `/mcp` and sign in with your Shipment Manager account.
 |---|---|
 | `connection-and-billing` | What the connection may do, and which account is billed |
 | `instant-pricing` | Live carrier prices for FCL, LCL, AIR and LTL |
-| `quote-requests` | Prices only Freight Right's pricing team can give |
+| `quote-requests` | Prices only Freight Right's pricing team can give, requests to Freight Right's team, and an administrator finishing a quote |
 | `booking-handoff` | Preparing a confirmation link, and reading what the customer decided |
 | `shipment-tracking` | Finding shipments and reading their milestones |
 

@@ -42,7 +42,7 @@ async def inventory(fr_mcp: pathlib.Path):
         auth_base_url='https://auth.freightright.com',
         upstream_client_secret='documentation',  # noqa: S106 - nothing authenticates with it
         jwt_signing_key_b64=base64.b64encode(os.urandom(32)).decode(),
-        features=['rates', 'rate_requests', 'bookings', 'quotes'],
+        features=['rates', 'rate_requests', 'bookings', 'quotes', 'requests'],
         confirmation_url='https://app.freightright.com/confirm-booking',
     )
     fr_security = FrSecurityClient(settings)
@@ -78,6 +78,18 @@ def revision(fr_mcp: pathlib.Path) -> str:
         return 'unknown'
 
 
+def as_javascript_numbers(value):
+    """JavaScript has one number type, so `JSON.stringify` writes 5000 where Python writes 5000.0. Pydantic gives a
+    Decimal field's bounds as floats, so without this the bytes differ from what the validator expects."""
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    if isinstance(value, dict):
+        return {key: as_javascript_numbers(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [as_javascript_numbers(item) for item in value]
+    return value
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--fr-mcp', required=True, type=pathlib.Path)
@@ -105,7 +117,7 @@ def main() -> int:
     }
     out = HERE / 'contract' / 'tools.json'
     # Match `JSON.stringify(value, null, 2)` exactly — the validator checks the bytes.
-    out.write_text(json.dumps(snapshot, indent=2, ensure_ascii=False) + '\n')
+    out.write_text(json.dumps(as_javascript_numbers(snapshot), indent=2, ensure_ascii=False) + '\n')
     print(f'{out.relative_to(HERE)}: {len(tools)} tools, {len(resources)} resources, '
           f'{len(templates)} templates, {len(prompts)} prompts @ {snapshot["source"]["revision"][:12]}')
     return 0
