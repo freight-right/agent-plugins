@@ -10,7 +10,7 @@
         "source": "local",
         "path": "./plugins/freightright"
       },
-      "description": "Price, quote, book and track international freight through the Freight Right MCP connector — ocean, air and road — with the workflow rules an assistant needs to get it right.",
+      "description": "Freight rates, quote requests and shipment tracking from your Freight Right account, with skills that keep billing and bookings right.",
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
