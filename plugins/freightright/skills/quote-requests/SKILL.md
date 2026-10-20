@@ -1,6 +1,6 @@
 ---
 name: quote-requests
-description: Freight Right quote requests — ask Freight Right's pricing team for a price that instant rates cannot give. Use for full truckload, Mexico trucking, hazardous or temperature-controlled cargo on a mode that refuses it, oversized or unusual cargo, a lane with no instant offers, or a second opinion on an instant price. Covers previewing what would be sent, submitting it, polling the result, who may book it, listing quotes — a customer's own, or every organization's for a Freight Right administrator — and an administrator sharing a quote with e-mail addresses and finishing a draft quote: its offers, the one chosen, sending it and its public link. Also use when a customer wants to ask Freight Right's team something in their own words — a spot rate, a contract inquiry, help with a booking, a shipment problem, a correction or a feature request — or to follow up on or withdraw such a request.
+description: Freight Right quote requests — ask Freight Right's pricing team for a price that instant rates cannot give. Use for full truckload, Mexico trucking, hazardous or temperature-controlled cargo on a mode that refuses it, oversized or unusual cargo, a lane with no instant offers, or a second opinion on an instant price. Covers previewing what would be sent, submitting it, polling the result, who may book it, listing quotes — a customer's own, or every organization's for a Freight Right administrator — a quote's public read-only link, which a customer manages for their own quotes, and an administrator sharing a quote with e-mail addresses and finishing a draft quote: its offers, the one chosen and sending it. Also use when a customer wants to ask Freight Right's team something in their own words — a spot rate, a contract inquiry, help with a booking, a shipment problem, a correction or a feature request — or to follow up on or withdraw such a request.
 ---
 
 # Freight Right: quote requests
@@ -85,7 +85,7 @@ asks. Every tool takes the `quote_number`.
 | 2. Select the one the user chose | `freightright_select_quote_offer` | The `offer_id` and `revision` exactly as listed |
 | 3. Share it with the people who should see it | `freightright_share_quote` | Above |
 | 4. Send it | `freightright_send_quote` | The draft becomes pending the customer's approval |
-| 5. Give it a public link | `freightright_public_link` | `freightright_change_public_link` replaces it or turns it off |
+| 5. Give it a public link, if the user asks | `freightright_public_link` | Below |
 
 - **The first listing prices the quote**, which can take up to a minute for a door delivery; if the answer says it
   is still pricing, ask again. A quote that already has its offer, or is no longer a draft, has nothing to list.
@@ -96,15 +96,28 @@ asks. Every tool takes the `quote_number`.
   an address the quote is shared with, so share first. With no recipients nothing is e-mailed. Send only when the
   user asked, to the people they named. The quote needs its offer, still valid; a quote already sent is sent again
   only to named recipients.
-- **Anyone holding the public link sees the quote** without signing in, including later changes, until its offer
-  expires or the link is turned off — give it only to whom the user names. It needs a sent quote with a valid
-  offer, and asking again returns the same link.
-- **`reset` and `turn_off` stop the current URL for everyone who has it**, so use them only when the user asks.
-  `reset` makes a new URL; `turn_off` ends the link for good, whatever the quote's state.
 - Whether the user is asked to confirm before a select or a send goes through depends on their assistant settings,
   not on Freight Right.
-- On a customer's connection these tools refuse: say that finishing a quote is Freight Right's, and that the
-  customer can ask their Freight Right contact.
+- On a customer's connection listing and selecting offers and sending refuse: say that finishing a quote is Freight
+  Right's, and that the customer can ask their Freight Right contact.
+
+## A quote's public link
+
+`freightright_public_link` gets a quote's public read-only link, making it if the quote has none;
+`freightright_change_public_link` replaces it (`reset`) or turns it off (`turn_off`). Both take the `quote_number`.
+
+- **A customer manages the links of their own quotes** — ones they created, or that are billed to one of their
+  organizations — exactly as on the quote page. Do not offer it for a quote only shared with them
+  (`shared_with_you: true`): Freight Right refuses it, and its own customers or Freight Right manage that link. An
+  administrator's connection manages any quote's.
+- **Anyone holding the link sees the quote** without signing in, including later changes, until its offer expires
+  or the link is turned off — make it only when the user asks, and give it only to whom they name. Asking again
+  returns the same link.
+- **It needs a selected offer that is still valid.** A quote request has one once Freight Right has priced it; an
+  administrator's draft is sent first. When the answer says the link does not open, say why.
+- **`reset` and `turn_off` stop the current URL for everyone who has it**, so use them only when the user asks.
+  `reset` makes a new URL; `turn_off` ends the link for good, whatever the quote's state.
+- Whether the user is asked to confirm first depends on their assistant settings, not on Freight Right.
 
 ## Give the shipment, or give a price check — never both
 

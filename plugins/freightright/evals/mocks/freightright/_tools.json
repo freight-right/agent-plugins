@@ -2,7 +2,7 @@
   "tools": [
     {
       "name": "freightright_change_public_link",
-      "description": "Replace or turn off a quote's public link — a Freight Right administrator's connection only. `reset` makes a new URL; `turn_off` stops the link for good. Either way the current URL stops working for EVERYONE who has it, so do this only when the user asks. Turning off works whatever the quote's state.",
+      "description": "Replace or turn off a quote's public link. `reset` makes a new URL; `turn_off` stops the link for good. Either way the current URL stops working for EVERYONE who has it, so do this only when the user asks. Turning off works whatever the quote's state. The same people as for freightright_public_link: a customer for their own quotes, never for one only shared with them; a Freight Right administrator's connection for any quote.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -3081,7 +3081,7 @@
     },
     {
       "name": "freightright_public_link",
-      "description": "Get a quote's public read-only link, making it if the quote has none — a Freight Right administrator's connection only. Anyone holding the URL sees the quote without signing in, including later changes, until its offer expires or the link is turned off; give it only to whom the user names. It needs a sent quote with a valid offer (freightright_send_quote first). Calling it again returns the same link.",
+      "description": "Get a quote's public read-only link, making it if the quote has none. A customer's connection manages the links of their own quotes — ones they created, or billed to one of their organizations — never of a quote only shared with them; a Freight Right administrator's connection manages any quote's. Anyone holding the URL sees the quote without signing in, including later changes, until its offer expires or the link is turned off; give it only to whom the user names. It needs a selected offer that is still valid — a quote request has one once it is priced; an administrator's draft is sent first (freightright_send_quote). Calling it again returns the same link.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,

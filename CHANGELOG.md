@@ -39,6 +39,13 @@ All notable changes to this plugin are documented here. The format follows
   writes whole numbers as `JSON.stringify` does (`5000`, not `5000.0`), so its output passes the validator.
   `freightright_get_account` now covers requests to Freight Right's team, and the connector offers the prompt
   `ask-freight-right`.
+- A customer gives their own quotes a public read-only link: `freightright_public_link` and
+  `freightright_change_public_link` are no longer an administrator's alone. `quote-requests` moves the public link
+  out of finishing a draft quote into its own section — a quote the customer created or that is billed to one of
+  their organizations, never one only shared with them; a selected offer still valid, which a quote request has once
+  priced; reset and turn off stop the link for everyone — and `connection-and-billing` names
+  `can.manage_public_links`. The link mocks show no `created_by_email`, as a customer's connection gets none.
+  Contract and the eval tool list refreshed.
 
 ## [0.2.0] — 2026-09-23
 
