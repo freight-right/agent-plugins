@@ -34,7 +34,9 @@ and its `query` (part of the id or name the user said). When exactly one organiz
 when several match, or none, ask — never pick a near miss, and never guess an id.
 
 An administrator's connection also shares quotes and finishes draft quotes. It reads every organization's requests
-to Freight Right's team but files none: staff file for a customer on the staff page.
+to Freight Right's team but files none: staff file for a customer on the staff page. A customer's connection gives
+its own quotes a public link (`freightright_get_account.can.manage_public_links`) — never a quote only shared with
+it.
 
 ## The three billing policies
 
