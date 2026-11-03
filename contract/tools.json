@@ -1,7 +1,7 @@
 {
   "source": {
     "repository": "freight-right/fr-mcp",
-    "revision": "1053d6962a826d3f44e62f450b52875023bf357b"
+    "revision": "c3f08584fec4e9f1051062cbdbe46692c8839b12"
   },
   "tools": [
     {
@@ -2394,7 +2394,7 @@
               }
             ],
             "default": null,
-            "description": "RFC 3339 UTC timestamp, e.g. 2026-11-01T00:00:00Z: start at events recorded since then. Ignored once a cursor is given (the cursor carries it)."
+            "description": "RFC 3339 UTC timestamp, e.g. 2026-11-01T00:00:00Z: start at events recorded since then. Send the same `since` (and `types`) with every cursor: a cursor is bound to them, and a replay with other values is refused."
           },
           "limit": {
             "default": 50,

@@ -24,7 +24,17 @@
       "broker_filer_code": "FRB",
       "total_duty": "0.00",
       "total_fees": "412.60",
-      "agency_statuses": [],
+      "agency_statuses": [
+        {
+          "agency_code": "FDA",
+          "agency_description": "Food and Drug Administration",
+          "status_code": "MP",
+          "status_date": "2026-09-16",
+          "status_message": "May proceed",
+          "pga_identifier": "FD1",
+          "pga_program_code": "FOO"
+        }
+      ],
       "us_customs": {
         "bond_type": "CONTINUOUS",
         "cargo_release_status": "PENDING",
@@ -33,12 +43,23 @@
         "it_date": null,
         "liquidation_date": null,
         "location_of_goods": null,
-        "dispositions": []
+        "dispositions": [
+          {
+            "disposition_code": "1A",
+            "disposition_code_description": "Entry accepted, release pending arrival",
+            "disposition_date": "2026-09-15",
+            "disposition_reason_code": null,
+            "order": 1,
+            "release_date": null
+          }
+        ]
       },
       "lines": [
         {
           "invoice_number": "CI-7781-1",
-          "line_numbers": ["1"],
+          "line_numbers": [
+            "1"
+          ],
           "hts": "9401.61.4011",
           "supplemental_tariff": "9903.88.03",
           "part_number": "CHAIR-OAK-01",

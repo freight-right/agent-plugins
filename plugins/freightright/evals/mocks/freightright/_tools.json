@@ -2199,7 +2199,7 @@
               }
             ],
             "default": null,
-            "description": "RFC 3339 UTC timestamp, e.g. 2026-11-01T00:00:00Z: start at events recorded since then. Ignored once a cursor is given (the cursor carries it)."
+            "description": "RFC 3339 UTC timestamp, e.g. 2026-11-01T00:00:00Z: start at events recorded since then. Send the same `since` (and `types`) with every cursor: a cursor is bound to them, and a replay with other values is refused."
           },
           "limit": {
             "default": 50,

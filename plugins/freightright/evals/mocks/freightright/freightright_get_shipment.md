@@ -4,24 +4,51 @@
     "customer_organization_id": "ACMEIMPLAX",
     "house_bill": "HBL55512",
     "master_bill": "OOLU2098447",
-    "purchase_order_numbers": ["PO-7781"],
+    "purchase_order_numbers": [
+      "PO-7781"
+    ],
     "purchase_order_total": 1,
     "shipper_reference": null,
     "consignee_reference": null,
     "transport_mode": "SEA",
     "traffic": "international",
     "shipment_status": null,
-    "tracking_status": {"code": "IN_TRANSIT", "label": "In transit", "since": "2026-08-29T03:40:00"},
+    "tracking_status": {
+      "code": "IN_TRANSIT",
+      "label": "In transit",
+      "since": "2026-08-29T03:40:00"
+    },
     "delivery_state": "IN_TRANSIT",
     "archived": false,
-    "origin": {"code": "CNSHA", "name": "Shanghai"},
-    "destination": {"code": "USLAX", "name": "Los Angeles"},
-    "final_destination": {"code": null, "name": "Rialto, CA"},
-    "departure": {"estimated": "2026-08-28T08:00:00", "actual": "2026-08-29T03:40:00"},
-    "port_arrival": {"estimated": "2026-09-18T06:00:00", "actual": null},
-    "delivery": {"estimated": "2026-09-24T00:00:00", "actual": null, "appointment": null},
+    "origin": {
+      "code": "CNSHA",
+      "name": "Shanghai"
+    },
+    "destination": {
+      "code": "USLAX",
+      "name": "Los Angeles"
+    },
+    "final_destination": {
+      "code": null,
+      "name": "Rialto, CA"
+    },
+    "departure": {
+      "estimated": "2026-08-28T08:00:00",
+      "actual": "2026-08-29T03:40:00"
+    },
+    "port_arrival": {
+      "estimated": "2026-09-18T06:00:00",
+      "actual": null
+    },
+    "delivery": {
+      "estimated": "2026-09-24T00:00:00",
+      "actual": null,
+      "appointment": null
+    },
     "last_milestone": "Transhipped at Busan",
-    "container_numbers": ["MSKU7654321"],
+    "container_numbers": [
+      "MSKU7654321"
+    ],
     "container_total": 1,
     "source_updated_at": "2026-09-06T00:00:00Z",
     "shipment_manager_url": "https://app.freightright.com/shipments/SIN0012345"
@@ -31,10 +58,22 @@
       "sequence": 1,
       "type": "MAIN",
       "transport_mode": "SEA",
-      "origin": {"code": "CNSHA", "name": "Shanghai"},
-      "destination": {"code": "USLAX", "name": "Los Angeles"},
-      "departure": {"estimated": "2026-08-28T08:00:00", "actual": "2026-08-29T03:40:00"},
-      "arrival": {"estimated": "2026-09-18T06:00:00", "actual": null},
+      "origin": {
+        "code": "CNSHA",
+        "name": "Shanghai"
+      },
+      "destination": {
+        "code": "USLAX",
+        "name": "Los Angeles"
+      },
+      "departure": {
+        "estimated": "2026-08-28T08:00:00",
+        "actual": "2026-08-29T03:40:00"
+      },
+      "arrival": {
+        "estimated": "2026-09-18T06:00:00",
+        "actual": null
+      },
       "carrier_name": "OOCL",
       "carrier_scac": "OOLU",
       "vessel_name": "OOCL UTAH",
@@ -75,15 +114,27 @@
       "container_number": "MSKU7654321",
       "size": "40",
       "type": "HC",
-      "delivery": {"estimated": "2026-09-24T00:00:00", "booked": null, "actual": null},
+      "delivery": {
+        "estimated": "2026-09-24T00:00:00",
+        "booked": null,
+        "actual": null
+      },
       "last_milestone": "Transhipped at Busan",
       "milestone_total": 3,
-      "tracking_status": {"code": "IN_TRANSIT", "label": "In transit", "since": "2026-08-29T03:40:00"},
+      "tracking_status": {
+        "code": "IN_TRANSIT",
+        "label": "In transit",
+        "since": "2026-08-29T03:40:00"
+      },
       "last_free_day": null,
       "available_for_pickup_at": null,
       "gate_out_actual": null,
       "delivered_to_warehouse_actual": null,
-      "empty_return": {"required_by": null, "ready_at": null, "actual": null},
+      "empty_return": {
+        "required_by": null,
+        "ready_at": null,
+        "actual": null
+      },
       "seal_number": "OOLU998811",
       "po_number": "PO-7781",
       "gross_weight_kgs": "18400.5",
@@ -121,12 +172,28 @@
     }
   ],
   "parties": {
-    "shipper": {"name": "Jiangsu Furniture Co", "city": "Suzhou", "country_code": "CN", "organization_id": "JIANGSUFUR"},
-    "consignee": {"name": "Acme Imports LLC", "city": "Rialto", "country_code": "US", "organization_id": "ACMEIMPLAX"}
+    "shipper": {
+      "name": "Jiangsu Furniture Co",
+      "city": "Suzhou",
+      "country_code": "CN",
+      "organization_id": "JIANGSUFUR"
+    },
+    "consignee": {
+      "name": "Acme Imports LLC",
+      "city": "Rialto",
+      "country_code": "US",
+      "organization_id": "ACMEIMPLAX"
+    }
   },
   "organizations": [
-    {"role": "CONSIGNEE", "id": "ACMEIMPLAX"},
-    {"role": "SHIPPER", "id": "JIANGSUFUR"}
+    {
+      "role": "CONSIGNEE",
+      "organization_id": "ACMEIMPLAX"
+    },
+    {
+      "role": "SHIPPER",
+      "organization_id": "JIANGSUFUR"
+    }
   ],
   "purchase_orders": [
     {
@@ -153,9 +220,21 @@
   "packages": [],
   "package_total": 0,
   "sections": {
-    "legs": {"total": 1, "returned": 1, "offset": 0},
-    "milestones": {"total": 3, "returned": 3, "offset": 0},
-    "containers": {"total": 1, "returned": 1, "offset": 0}
+    "legs": {
+      "total": 1,
+      "returned": 1,
+      "offset": 0
+    },
+    "milestones": {
+      "total": 3,
+      "returned": 3,
+      "offset": 0
+    },
+    "containers": {
+      "total": 1,
+      "returned": 1,
+      "offset": 0
+    }
   },
   "notes": "Dates and times are local to the event location, as recorded by the source (no time zone). Estimated dates are plans, not events. Status may lag physical movement; see source_updated_at (UTC)."
 }
