@@ -2,7 +2,7 @@
   "name": "freightright",
   "displayName": "Freight Right",
   "version": "0.2.0",
-  "description": "Freight rates, quote requests and shipment tracking from your Freight Right account, with skills that keep billing and bookings right.",
+  "description": "Freight rates, quote requests, and shipment tracking with billing, customs, documents and a feed of what changed, from your Freight Right account, with skills that keep billing and bookings right.",
   "author": {
     "name": "Freight Right",
     "email": "support@freightright.com"
@@ -30,7 +30,7 @@
   "interface": {
     "displayName": "Freight Right",
     "shortDescription": "Freight rates, quote requests and shipment tracking",
-    "longDescription": "Freight rates, quote requests and shipment tracking from your Freight Right account, with skills that keep billing and bookings right.",
+    "longDescription": "Freight rates, quote requests, and shipment tracking with billing, customs, documents and a feed of what changed, from your Freight Right account, with skills that keep billing and bookings right.",
     "developerName": "Freight Right",
     "category": "Productivity",
     "capabilities": [
