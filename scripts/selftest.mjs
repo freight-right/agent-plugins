@@ -38,6 +38,10 @@ const VALIDATOR_CASES = [
     json(d, 'plugins/freightright/.mcp.json', (v) => {
       v.mcpServers.freightright.url = 'https://dev-mcp.sm.freightright.com/mcp';
     })],
+  ['a Gemini CLI connector URL that is not production', (d) =>
+    json(d, 'gemini-extension.json', (v) => {
+      v.mcpServers.freightright.httpUrl = 'https://dev-mcp.sm.freightright.com/mcp';
+    })],
   ['a client manifest drifting from the others', (d) =>
     json(d, '.cursor-plugin/marketplace.json', (v) => { v.metadata.version = '9.9.9'; })],
   ['a tool with no mock, which would make a must-not-call check vacuous', (d) =>

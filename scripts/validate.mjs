@@ -58,7 +58,7 @@ const need = (path) => {
 
 // ------------------------------------------------- every client's manifest says the same thing, in its own shape
 // Each client is given its OWN file rather than being made to fall through to another vendor's path, and the shared
-// `.claude-plugin/` file is kept because several clients happily read it. That means one fact lives in eight places,
+// `.claude-plugin/` file is kept because several clients happily read it. That means one fact lives in many places,
 // so the check below is the thing that makes it safe: compare what each file MEANS, through an explicit accessor per
 // client, never by requiring the same field placement — Cursor nests under `metadata`, Codex under `interface`.
 
@@ -211,6 +211,38 @@ if (portableMcp) {
     for (const key of Object.keys(server)) {
       if (!['type', 'url', 'headers'].includes(key)) {
         fail(`${PLUGIN}/mcp.json`, `server field \`${key}\` is not in the portable schema`);
+      }
+    }
+  }
+}
+
+// ------------------------------------------------ Gemini CLI reads a root-level gallery manifest, not a plugin path
+// The gallery crawler looks for `gemini-extension.json` at the repository root. It is a ninth place the version and
+// the connector URL live, so pin the same facts the other clients already share: name, version, description, and
+// production `httpUrl` with dynamic OAuth discovery — no client id, secret or token.
+const gemini = need('gemini-extension.json');
+if (gemini && portable) {
+  for (const field of ['name', 'version', 'description']) {
+    if (gemini[field] !== portable[field]) {
+      fail('gemini-extension.json', `\`${field}\` differs from the portable manifest`);
+    }
+  }
+  if (gemini.contextFileName !== 'GEMINI.md') {
+    fail('gemini-extension.json', 'contextFileName must be GEMINI.md');
+  }
+  if (!existsSync(join(ROOT, 'GEMINI.md'))) fail('GEMINI.md', 'is missing');
+  const server = gemini.mcpServers?.[SERVER_KEY];
+  if (!server) fail('gemini-extension.json', `expected a server named "${SERVER_KEY}"`);
+  else {
+    if (server.httpUrl !== CONNECTOR_URL) {
+      fail('gemini-extension.json', `httpUrl must be exactly ${CONNECTOR_URL}`);
+    }
+    if (server.authProviderType !== 'dynamic_discovery') {
+      fail('gemini-extension.json', 'authProviderType must be "dynamic_discovery"');
+    }
+    for (const secret of ['clientId', 'clientSecret', 'authorizationUrl', 'tokenUrl', 'issuer']) {
+      if (server[secret] != null || server.oauth?.[secret] != null) {
+        fail('gemini-extension.json', `do not ship \`${secret}\` — Gemini CLI discovers OAuth dynamically`);
       }
     }
   }
