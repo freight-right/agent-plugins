@@ -4,8 +4,9 @@
 
 - This repository is public. It must never contain credentials, customer data, internal ticket identifiers, or a
   hostname belonging to a development or staging environment.
-- `plugins/freightright/.mcp.json` must carry exactly `https://mcp.freightright.com/mcp`. The validator pins this
-  string. To test against development, copy the plugin elsewhere and change the copy.
+- `plugins/freightright/.mcp.json` and the root `gemini-extension.json` must carry exactly
+  `https://mcp.freightright.com/mcp`. The validator pins this string. To test against development, copy the plugin
+  elsewhere and change the copy.
 
 ## Source of truth
 
@@ -22,5 +23,5 @@ stays inside the portable Agent Skills fields, and that every eval grader names 
 
 ## Releases
 
-Bump the version in both manifests, refresh the contract, run the evals, and record the tested commit. Details in
-CONTRIBUTING.md.
+Bump the version with `npm run set-version`, refresh the contract, run the evals, and record the tested commit.
+Details in CONTRIBUTING.md.
