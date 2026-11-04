@@ -3,7 +3,7 @@
 // names really exists on the connector, that no skill has drifted outside the portable Agent Skills fields, and that
 // nothing here points at a development environment.
 
-import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, lstatSync, readlinkSync, statSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -231,6 +231,14 @@ if (gemini && portable) {
     fail('gemini-extension.json', 'contextFileName must be GEMINI.md');
   }
   if (!existsSync(join(ROOT, 'GEMINI.md'))) fail('GEMINI.md', 'is missing');
+  // Gemini CLI loads skills/<name>/SKILL.md from the extension root. A symlink keeps one copy with the
+  // other clients. A real directory here would drift.
+  const skillsLink = join(ROOT, 'skills');
+  if (!existsSync(skillsLink) || !lstatSync(skillsLink).isSymbolicLink()) {
+    fail('skills', 'must be a symlink to plugins/freightright/skills');
+  } else if (readlinkSync(skillsLink) !== 'plugins/freightright/skills') {
+    fail('skills', 'must point at plugins/freightright/skills');
+  }
   const server = gemini.mcpServers?.[SERVER_KEY];
   if (!server) fail('gemini-extension.json', `expected a server named "${SERVER_KEY}"`);
   else {

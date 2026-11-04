@@ -150,13 +150,18 @@ Cursor takes a full git URL rather than `owner/repo`, and indexes the default br
 
 **Gemini CLI**
 
+Gemini CLI installs the latest GitHub Release, not the default branch. It clones the repository only when the
+repository has no release at all. The current release does not contain `gemini-extension.json`, so this command
+fails with `configuration file not found` until a release tag includes the manifest:
+
 ```sh
 gemini extensions install https://github.com/freight-right/agent-plugins
 ```
 
-Then in a session run `/mcp auth freightright` and sign in with your Shipment Manager account. Gemini CLI discovers
-the OAuth endpoints from the connector and registers a client dynamically — there is no client id or secret in this
-repository. The extension's tool timeout is already set to 60 seconds.
+After that release, run `/mcp auth freightright` and sign in with your Shipment Manager account. Gemini CLI
+discovers the OAuth endpoints from the connector and registers a client dynamically. There is no client id or
+secret in this repository. The extension's tool timeout is already set to 60 seconds. Later updates follow the
+release tag.
 
 Once the repository carries the `gemini-cli-extension` GitHub topic, the same extension appears in the
 [Gemini CLI extension gallery](https://geminicli.com/extensions).
@@ -169,7 +174,7 @@ Once the repository carries the `gemini-cli-extension` GitHub topic, the same ex
 | Codex CLI 0.155.1 | Verified | Verified |
 | Copilot CLI 1.0.87 | Verified | Verified |
 | Cursor 2.2.44 | Verified | Verified |
-| Gemini CLI | Pending interactive check | Extension context only |
+| Gemini CLI | Pending the next GitHub Release | The five skills, via a `skills` symlink |
 | Grok 1.0.40 | Verified | Verified |
 | Muse Code 1.3.0 | Verified, behind `MUSE_EXPERIMENTAL_PLUGINS` | Verified |
 
@@ -178,8 +183,8 @@ vendor's directory. Grok and Muse Code are the exceptions that prove the point: 
 [Agent Plugins](https://agent-plugins.org) manifest — Muse Code reads the Codex or Claude Code catalog as well — so
 neither needs anything of its own. Muse Code installs the skills only: its plugin format cannot carry an authenticated
 MCP server yet, which is why its install ends in a settings entry and a sign-in. Gemini CLI reads the root
-`gemini-extension.json` and `GEMINI.md`; the Agent Plugins skills stay under `plugins/freightright/skills/` for the
-other clients.
+`gemini-extension.json` and `GEMINI.md`. Its `skills` directory is a symlink to `plugins/freightright/skills`, so
+it loads the same five skills.
 
 The production connector the plugin ships, `https://mcp.freightright.com/mcp`, is live: Freight Right's scripted
 canary — a registered MCP client that signs in through the same OAuth flow these clients use — completes the sign-in

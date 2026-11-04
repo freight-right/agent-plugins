@@ -5,7 +5,9 @@
 ```
 .claude-plugin/marketplace.json   the marketplace Claude Code reads
 gemini-extension.json             the Gemini CLI extension gallery manifest (repository root)
-GEMINI.md                         short context Gemini CLI loads with the extension
+GEMINI.md                         connector facts Gemini CLI loads with the extension
+skills -> plugins/freightright/skills
+                                  Gemini CLI reads skills/<name>/SKILL.md from the extension root
 contract/tools.json               a snapshot of the connector's real tool surface, with the fr-mcp revision
 plugins/freightright/
   plugin.json                     portable manifest
@@ -165,6 +167,9 @@ release; see `plugins/freightright/evals/README.md`.
 3. Run the eval suite on a pinned model with three trials, and record the model and commit — the gate
    refuses to run without both.
 4. Update `CHANGELOG.md`.
+5. Publish a GitHub Release whose tag is `v` plus the version, for example `v0.2.0`. Gemini CLI installs the
+   latest release, not the default branch, and it detects updates from that tag. A version that exists only as
+   commits does not reach Gemini CLI. The repository already has a release, so there is no clone fallback.
 
 ## Commits
 

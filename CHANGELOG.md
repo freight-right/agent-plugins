@@ -8,8 +8,10 @@ All notable changes to this plugin are documented here. The format follows
 ### Added
 
 - Gemini CLI extension gallery listing: root `gemini-extension.json` pointing at
-  `https://mcp.freightright.com/mcp` with `authProviderType: dynamic_discovery`, a short `GEMINI.md`, and install
-  steps in the README. The gallery also needs the `gemini-cli-extension` GitHub topic after merge.
+  `https://mcp.freightright.com/mcp` with `authProviderType: dynamic_discovery`, connector facts in `GEMINI.md`,
+  and the five skills through a `skills` symlink. Gemini CLI installs the latest GitHub Release, so a release tag
+  has to carry the manifest before the README install command works. The gallery also needs the
+  `gemini-cli-extension` GitHub topic after merge.
 
 - A shipment's billing, customs and documents, the customer's invoices across shipments, and the feed of what
   changed: `freightright_get_shipment_billing`, `freightright_get_shipment_customs`, `freightright_list_invoices`,
