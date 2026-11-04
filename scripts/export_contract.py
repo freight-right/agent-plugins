@@ -42,7 +42,7 @@ async def inventory(fr_mcp: pathlib.Path):
         auth_base_url='https://auth.freightright.com',
         upstream_client_secret='documentation',  # noqa: S106 - nothing authenticates with it
         jwt_signing_key_b64=base64.b64encode(os.urandom(32)).decode(),
-        features=['rates', 'rate_requests', 'bookings', 'quotes', 'requests'],
+        features=['rates', 'rate_requests', 'bookings', 'quotes', 'requests', 'billing', 'documents'],
         confirmation_url='https://app.freightright.com/confirm-booking',
     )
     fr_security = FrSecurityClient(settings)

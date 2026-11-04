@@ -13,7 +13,7 @@
     {
       "name": "freightright",
       "source": "./plugins/freightright",
-      "description": "Freight rates, quote requests and shipment tracking from your Freight Right account, with skills that keep billing and bookings right.",
+      "description": "Freight rates, quote requests, and shipment tracking with billing, customs, documents and a feed of what changed, from your Freight Right account, with skills that keep billing and bookings right.",
       "category": "Productivity"
     }
   ]

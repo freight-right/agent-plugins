@@ -1,6 +1,6 @@
 ---
 name: quote-requests
-description: Freight Right quote requests — ask Freight Right's pricing team for a price that instant rates cannot give. Use for full truckload, Mexico trucking, hazardous or temperature-controlled cargo on a mode that refuses it, oversized or unusual cargo, a lane with no instant offers, or a second opinion on an instant price. Covers previewing what would be sent, submitting it, polling the result, who may book it, listing quotes — a customer's own, or every organization's for a Freight Right administrator — a quote's public read-only link, which a customer manages for their own quotes, and an administrator sharing a quote with e-mail addresses and finishing a draft quote: its offers, the one chosen and sending it. Also use when a customer wants to ask Freight Right's team something in their own words — a spot rate, a contract inquiry, help with a booking, a shipment problem, a correction or a feature request — or to follow up on or withdraw such a request.
+description: Freight Right quote requests — ask Freight Right's pricing team for a price that instant rates cannot give: full truckload, Mexico trucking, hazardous or temperature-controlled cargo on a mode that refuses it, unusual cargo, a lane with no instant offers, a second opinion. Covers previewing, submitting and polling a request, who may book it, listing quotes and reading one by its number (a customer's own, or every organization's for a Freight Right administrator), a quote's public read-only link, an administrator sharing a quote and finishing a draft: its offers, the one chosen, sending it. Also use when a customer asks Freight Right's team something in their own words — a spot rate, a contract inquiry, booking help, a shipment problem, a correction, a PO discrepancy (what a container held against the purchase order) or a feature request — or follows up on or withdraws such a request.
 ---
 
 # Freight Right: quote requests
@@ -149,12 +149,17 @@ is a safeguard, not a way to poll.
 `freightright_list_quotes` is the index across everything — quotes from the portal, from quote requests and from
 instant bookings.
 
-**Only some rows can be opened here.** A row with a `rate_request_id` (`rfq_…`) can be read in full with
-`freightright_get_rate_request`. A row created in the portal has **`rate_request_id: null`** and there is no tool
-that reads it — say so plainly and point the customer at that quote in Shipment Manager, rather than guessing an id
-or reporting the row as if it were complete.
+**Any row opens by its number.** `freightright_get_quote` takes the `quote_number` — a quote created in the portal
+included, which has `rate_request_id: null` — and answers the row's own keys plus `offers`: the one offer the quote
+holds, with every charge line, once it is `QUOTED`, `BOOKING_REQUESTED` or `BOOKED`. An empty `offers` means no
+offer can be shown; `offers` is absent in every other status, and a `PENDING` portal quote has none even when
+Freight Right has priced it but not sent it — say the team has not sent an offer yet, never that it "has no price".
+`offers[0].mode` is the offer's own and can differ from the row's. A portal quote is approved and booked on its page
+in Shipment Manager; nothing here books it. A row with a `rate_request_id` can also be read with
+`freightright_get_rate_request`, which adds whether this connection may book it.
 
-A **quote number is an integer** shown in Shipment Manager and is **not** a quote request id.
+A **quote number is an integer** shown in Shipment Manager and is **not** a quote request id: never pass one to
+`freightright_get_rate_request`.
 
 When `has_more` is true, call again with `cursor` set to `next_cursor` and the same filters. Never invent a cursor.
 
@@ -175,6 +180,7 @@ also follow it in Shipment Manager. Its id is `FR-…`.
 | `shipment-issue` | A problem with a shipment — it needs the shipment reference |
 | `data-correction` | Something recorded wrongly — it needs the reference of the record |
 | `feature-request` | Something the customer wishes the product did — their words are the request |
+| `po-discrepancy` | What a container held against the purchase order — the shipment reference (`reference`), the container number, the PO number, the SKU, the expected and found quantities and their unit |
 
 1. **Check first.** `freightright_list_requests`. An open request — `submitted`, `triaged` or `in_progress` — on the
    same ask is continued, **never duplicated**.
@@ -216,3 +222,8 @@ also follow it in Shipment Manager. Its id is `FR-…`.
   on the staff page in Shipment Manager.
 - **At most 20 drafts and 5 submissions per organization per day.** When a limit is reached, the answer says when
   it resets.
+- **A PO discrepancy needs the shipment reference** (`reference`), which blocks submission until given. Pass the
+  container number as the customer wrote it (Freight Right drops spaces and hyphens), whole-number quantities and
+  one `unit` (CARTONS, PIECES or PALLETS). Freight Right cannot check in the request that the shipment is the
+  customer's: say that the team verifies the reference against the shipment's billing before acting. The facts to
+  compare come from `freightright_get_shipment` — the PO lines and each container's `contents`.

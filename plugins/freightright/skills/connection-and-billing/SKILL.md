@@ -62,6 +62,7 @@ Do not report these as the same thing. The customer's fix is different in each c
 | The tool is **not in the tool list at all** | The capability is switched off for this deployment or this assistant | Freight Right has not enabled it here. Reconnecting will not help |
 | The call returns an **authorization challenge** | The connection exists but was not granted that permission | The customer needs to reconnect and approve the extra permission. Permissions are fixed for the life of a connection |
 | The call says the connection is **paused**, or asks you to reconnect | The grant is paused or dead at Freight Right's end | Paused: the customer resolves it in Shipment Manager. Dead: reconnect |
+| The call says **"an older Freight Right build answered"** or that the environment **does not serve** a shipment's billing, customs, documents or the events feed yet | A rollout in progress, or a section not switched on in that environment | Try again in a minute, or ask Freight Right when it will be switched on. Nothing to reconnect, nothing wrong with the connection |
 
 A read that returns nothing is not any of these. A customer's account only sees its own organizations' data (an
 administrator's sees every organization's), so an empty result is an answer, not an error.
@@ -71,3 +72,20 @@ administrator's sees every organization's), so an empty result is an answer, not
 Give the customer the plain words, not the scope strings: which capabilities they have, what this month's usage is
 against the allowance, and which billing account will be used. If you are about to spend an allowance unit and the
 month is nearly used up, say so first.
+
+## Two more permissions: billing and documents
+
+A shipment's billing and customs (`freightright_get_shipment_billing`, `freightright_get_shipment_customs`,
+`freightright_list_invoices`) need the **shipment billing** permission, and its documents
+(`freightright_list_shipment_documents`, `freightright_get_shipment_document`) the **shipment documents**
+permission — each consented separately from reading shipments. A connection made before they existed asks for the
+missing one when a tool first needs it: that is the authorization challenge above, and the customer reconnects and
+approves the updated list. The events feed (`freightright_list_shipment_events`) needs only the shipments
+permission; billing and document events are simply absent from it without theirs.
+
+## Automation is not this connection
+
+An assistant connection belongs to the person who approved it and acts inside a conversation. A scheduled job — a
+sync, a watcher on arrivals, an invoice export — uses the customer's personal **API token** on Freight Right's two
+public APIs (made in Shipment Manager, Profile → API tokens) and polls the events feed there. When a customer asks
+for something to run on its own, say that, and do not offer this connection as the way to do it.

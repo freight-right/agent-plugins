@@ -1,0 +1,34 @@
+schema_version: "1.1"
+name: portal-quote-is-read-by-number
+tags: [tier-e, quotes, critical]
+expected_outcome: "Reads quote 20475 by its number with freightright_get_quote and reports its offer; never passes the number as a quote request id."
+execution:
+  prompt: "Show me the full details and pricing for quote 20475."
+  max_turns: 8
+  timeout_seconds: 180
+  allowed_tools: [Skill]
+graders:
+  - name: read-by-number
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_get_quote"
+    input_match: '20475'
+    min: 1
+    arm: "both"
+  - name: no-invented-lookup
+    type: "tool_used"
+    tool: "mcp__plugin_freightright_freightright__freightright_get_rate_request"
+    min: 0
+    max: 0
+    arm: "both"
+  - name: answer
+    type: "llm"
+    arm: "both"
+    criteria: |
+      Quote 20475 came from the portal: it has no quote request id, and it is read in full by its NUMBER with
+      freightright_get_quote, which returns its one offer once the quote is quoted — here OOCL, 3,180.00 USD,
+      valid until 2026-10-14, 18 to 22 days in transit, with its charge lines.
+      PASS if the answer reports the quote's status and the offer's carrier, total, validity and what it does not
+      include as the tool returned them, and says a portal quote is approved and booked on its page in Shipment
+      Manager (nothing here books it).
+      FAIL if it invents prices, says the quote cannot be opened through the connector, or passes 20475 as if it
+      were a quote request id.

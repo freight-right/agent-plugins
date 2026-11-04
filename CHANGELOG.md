@@ -7,6 +7,27 @@ All notable changes to this plugin are documented here. The format follows
 
 ### Added
 
+- A shipment's billing, customs and documents, the customer's invoices across shipments, and the feed of what
+  changed: `freightright_get_shipment_billing`, `freightright_get_shipment_customs`, `freightright_list_invoices`,
+  `freightright_list_shipment_documents`, `freightright_get_shipment_document` and
+  `freightright_list_shipment_events`. `shipment-tracking` says what a container's contents, last free day and
+  availability mean, that amounts are per currency and never added across currencies, that unpaid is a recorded
+  status and not a sum, that a document link lives for minutes and is handed over at once and never stored or
+  reused, that the tool does not read the file, that a hidden document type is simply absent, how the events feed
+  is paged by cursor and type, that it is the change signal a scheduled job polls with an API token, and that
+  `updated_since` is not one. `connection-and-billing` names the two new permissions, the "an older Freight Right
+  build answered" refusal of a rollout in progress, and that automation is not an assistant connection.
+- `freightright_get_quote`: one quote by its number, a portal quote included, with its offer once quoted.
+  `quote-requests` says any listed row opens by its number, when `offers` is present and what an empty or absent
+  one means, and that a quote number is never a quote request id. The eval `portal-quote-cannot-be-opened` became
+  `portal-quote-is-read-by-number`.
+- The request kind `po-discrepancy` — what a container held against the purchase order. `quote-requests` says the
+  shipment reference blocks submission, that the container number goes as written, and that Freight Right verifies
+  the reference against the shipment before acting.
+- Contract, mocks and the eval tool list refreshed — thirty-six tools. The `freightright_get_shipment` mock now
+  carries the keys the tool really emits (milestone names and codes, container numbers and contents, parties with
+  organization ids, the windowed `sections`), with the injected text inside a milestone message.
+
 - `freightright_share_quote`: a Freight Right administrator shares a quote with e-mail addresses. `quote-requests`
   says who may share (an administrator's connection only), that sharing sends no e-mail and that an address is
   removed on the quote page; `booking-handoff` and `quote-requests` add a shared address to who may book. Contract,
