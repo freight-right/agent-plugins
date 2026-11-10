@@ -1,7 +1,7 @@
 {
   "name": "freightright",
   "displayName": "Freight Right",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Freight rates, quote requests, and shipment tracking with billing, customs, documents and a feed of what changed, from your Freight Right account, with skills that keep billing and bookings right.",
   "author": {
     "name": "Freight Right",
