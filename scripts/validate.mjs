@@ -312,8 +312,9 @@ else {
   if ('httpUrl' in agyServer || 'url' in agyServer) {
     fail('mcp_config.json', 'use serverUrl, not httpUrl or url');
   }
-  if (agyServer.timeoutSeconds != null && (!Number.isInteger(agyServer.timeoutSeconds) || agyServer.timeoutSeconds < 60)) {
-    fail('mcp_config.json', 'timeoutSeconds must be an integer number of seconds, at least 60');
+  // A positive timeoutSeconds replaces both Antigravity defaults: 180 seconds per call and 300 seconds to connect.
+  if (agyServer.timeoutSeconds != null) {
+    fail('mcp_config.json', 'do not set timeoutSeconds. It replaces the 180 second call default and the 300 second connect default');
   }
   for (const secret of ['clientId', 'clientSecret', 'authorizationUrl', 'tokenUrl', 'issuer', 'headers', 'oauth']) {
     if (agyServer[secret] != null) {
@@ -324,7 +325,7 @@ else {
 
 // ---------------------------------------------------------------- nothing points at a non-production environment
 for (const path of files.filter((p) => !p.startsWith('.git/'))) {
-  if (['CONTRIBUTING.md', '.cursor/rules/repository.mdc', 'scripts/validate.mjs', 'scripts/selftest.mjs'].includes(path)) continue;
+  if (['CONTRIBUTING.md', 'AGENTS.md', 'scripts/validate.mjs', 'scripts/selftest.mjs'].includes(path)) continue;
   const text = read(path);
   // An environment prefix is a whole label: `dev-mcp.…` and `staging.…`, never `developers.freightright.com`.
   const stray = text.match(/https?:\/\/(?:[a-z0-9-]+\.)*(?:dev|staging|qa|uat)[-.][a-z0-9.-]+|https?:\/\/(?:localhost|127\.0\.0\.1)/i);
@@ -342,11 +343,17 @@ const frontmatter = (text) => {
   const end = text.indexOf('\n---', 3);
   if (end === -1) return null;
   const fields = new Map();
+  const plainColons = [];
   for (const line of text.slice(4, end).split('\n')) {
     const match = /^([A-Za-z-]+):\s*(.*)$/.exec(line);
-    if (match) fields.set(match[1], match[2].trim());
+    if (!match) continue;
+    const value = match[2].trim();
+    fields.set(match[1], value);
+    // A YAML parser treats an unquoted ": " as a nested mapping. Quoting the value is what keeps the field.
+    const quoted = (value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"));
+    if (!quoted && value.includes(': ')) plainColons.push(match[1]);
   }
-  return fields;
+  return { fields, plainColons };
 };
 
 const skillDir = `${PLUGIN}/skills`;
@@ -360,10 +367,14 @@ for (const dir of skills) {
     continue;
   }
   const text = read(path);
-  const fields = frontmatter(text);
-  if (!fields) {
+  const parsed = frontmatter(text);
+  if (!parsed) {
     fail(path, 'must open with YAML frontmatter on line 1');
     continue;
+  }
+  const fields = parsed.fields;
+  for (const key of parsed.plainColons) {
+    fail(path, `\`${key}\` has an unquoted ": ", so a YAML parser rejects the frontmatter`);
   }
   for (const key of fields.keys()) {
     if (!PORTABLE_FIELDS.has(key)) {

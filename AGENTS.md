@@ -1,8 +1,3 @@
----
-description: Safety, source of truth, validation, and release rules for this repository
-alwaysApply: true
----
-
 # Notes for agents working in this repository
 
 ## Safety

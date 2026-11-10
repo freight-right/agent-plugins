@@ -1,8 +1,7 @@
 {
   "mcpServers": {
     "freightright": {
-      "serverUrl": "https://mcp.freightright.com/mcp",
-      "timeoutSeconds": 120
+      "serverUrl": "https://mcp.freightright.com/mcp"
     }
   }
 }

@@ -177,7 +177,7 @@ agy plugin install https://github.com/freight-right/agent-plugins
 To install a branch before it is the default, append `/tree/<branch>` to that URL.
 
 When the Freight Right server connects, Antigravity opens a browser so you can sign in with your Shipment Manager
-account. A price check asks carriers live, so the tool timeout is 120 seconds.
+account. A price check asks carriers live and can take up to a minute.
 
 ### Supported clients
 
