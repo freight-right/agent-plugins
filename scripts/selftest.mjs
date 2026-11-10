@@ -34,9 +34,21 @@ const VALIDATOR_CASES = [
     edit(d, SKILL, (s) => s.replace('name: instant-pricing', 'name: something-else'))],
   ['a skill carrying allowed-tools', (d) =>
     edit(d, SKILL, (s) => s.replace('name: instant-pricing', 'name: instant-pricing\nallowed-tools: Bash'))],
+  ['a skill description with an unquoted colon', (d) => {
+    for (const file of [
+      'plugins/freightright/skills/quote-requests/SKILL.md',
+      'skills/quote-requests/SKILL.md',
+    ]) {
+      edit(d, file, (s) => s.replace(/^description: "(.*)"$/m, 'description: $1'));
+    }
+  }],
   ['a connector URL that is not production', (d) =>
     json(d, 'plugins/freightright/.mcp.json', (v) => {
       v.mcpServers.freightright.url = 'https://dev-mcp.sm.freightright.com/mcp';
+    })],
+  ['an Antigravity connector URL that is not production', (d) =>
+    json(d, 'mcp_config.json', (v) => {
+      v.mcpServers.freightright.serverUrl = 'https://dev-mcp.sm.freightright.com/mcp';
     })],
   ['a Gemini CLI connector URL that is not production', (d) =>
     json(d, 'gemini-extension.json', (v) => {

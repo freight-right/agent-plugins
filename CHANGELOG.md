@@ -5,6 +5,17 @@ All notable changes to this plugin are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- An Antigravity plugin: `.antigravity-plugin/plugin.json`, `mcp_config.json` for
+  `https://mcp.freightright.com/mcp`, and `rules/AGENTS.md`. It loads the five skills in `skills/`.
+  Gemini CLI's context file is `gemini-context.md`, so Antigravity does not treat it as an unloaded rule.
+
+### Fixed
+
+- The `quote-requests` skill description is quoted. An unquoted colon made YAML parsers drop the skill's name and
+  description.
+
 ## [0.2.2] — 2026-11-10
 
 ### Fixed

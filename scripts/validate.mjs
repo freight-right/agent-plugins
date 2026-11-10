@@ -217,7 +217,7 @@ if (portableMcp) {
 }
 
 // ------------------------------------------------ Gemini CLI reads a root-level gallery manifest, not a plugin path
-// The gallery crawler looks for `gemini-extension.json` at the repository root. It is a ninth place the version and
+// The gallery crawler looks for `gemini-extension.json` at the repository root. It is one place the version and
 // the connector URL live, so pin the same facts the other clients already share: name, version, description, and
 // production `httpUrl` with dynamic OAuth discovery — no client id, secret or token.
 const gemini = need('gemini-extension.json');
@@ -227,10 +227,10 @@ if (gemini && portable) {
       fail('gemini-extension.json', `\`${field}\` differs from the portable manifest`);
     }
   }
-  if (gemini.contextFileName !== 'GEMINI.md') {
-    fail('gemini-extension.json', 'contextFileName must be GEMINI.md');
+  if (gemini.contextFileName !== 'gemini-context.md') {
+    fail('gemini-extension.json', 'contextFileName must be gemini-context.md');
   }
-  if (!existsSync(join(ROOT, 'GEMINI.md'))) fail('GEMINI.md', 'is missing');
+  if (!existsSync(join(ROOT, 'gemini-context.md'))) fail('gemini-context.md', 'is missing');
   // Gemini CLI loads skills/<name>/SKILL.md from the extension root. It installs from a GitHub Release by copying
   // the download, and rewrites a symlink to the temporary folder it then deletes, so a symlink here loads no skill.
   // The root skills/ is therefore a real copy of the plugin's skills, byte for byte (`npm run sync-skills`).
@@ -271,6 +271,58 @@ if (gemini && portable) {
   }
 }
 
+// ------------------------------------------------ Antigravity reads a root plugin with its own manifest directory
+// Component files stay at the repository root. `.antigravity-plugin/plugin.json` is the manifest because this
+// repository already publishes manifests for other clients. The connector URL is `serverUrl` (seconds for any
+// timeout), never Gemini CLI's `httpUrl`. OAuth is discovered by the client, so no client id or secret ships here.
+const antigravity = need('.antigravity-plugin/plugin.json');
+if (antigravity && portable) {
+  for (const field of ['name', 'version', 'description']) {
+    if (antigravity[field] !== portable[field]) {
+      fail('.antigravity-plugin/plugin.json', `\`${field}\` differs from the portable manifest`);
+    }
+  }
+  if (antigravity.displayName !== 'Freight Right') {
+    fail('.antigravity-plugin/plugin.json', 'displayName must be "Freight Right"');
+  }
+  if (antigravity.homepage !== 'https://developers.freightright.com/setup/antigravity/') {
+    fail('.antigravity-plugin/plugin.json', 'homepage must be the Antigravity setup page');
+  }
+  if (antigravity.repository !== 'https://github.com/freight-right/agent-plugins') {
+    fail('.antigravity-plugin/plugin.json', 'repository must be https://github.com/freight-right/agent-plugins');
+  }
+  if (antigravity.author?.name !== 'Freight Right') {
+    fail('.antigravity-plugin/plugin.json', 'author.name must be "Freight Right"');
+  }
+  const logo = antigravity.logo;
+  if (typeof logo !== 'string' || logo.includes('..') || !existsSync(join(ROOT, logo))) {
+    fail('.antigravity-plugin/plugin.json', 'logo must be a file inside the repository');
+  }
+  if (!existsSync(join(ROOT, 'rules/AGENTS.md'))) {
+    fail('rules/AGENTS.md', 'is missing');
+  }
+}
+const mcpConfig = need('mcp_config.json');
+const agyServer = mcpConfig?.mcpServers?.[SERVER_KEY];
+if (!agyServer) fail('mcp_config.json', `expected a server named "${SERVER_KEY}"`);
+else {
+  if (agyServer.serverUrl !== CONNECTOR_URL) {
+    fail('mcp_config.json', `serverUrl must be exactly ${CONNECTOR_URL}`);
+  }
+  if ('httpUrl' in agyServer || 'url' in agyServer) {
+    fail('mcp_config.json', 'use serverUrl, not httpUrl or url');
+  }
+  // A positive timeoutSeconds replaces both Antigravity defaults: 180 seconds per call and 300 seconds to connect.
+  if (agyServer.timeoutSeconds != null) {
+    fail('mcp_config.json', 'do not set timeoutSeconds. It replaces the 180 second call default and the 300 second connect default');
+  }
+  for (const secret of ['clientId', 'clientSecret', 'authorizationUrl', 'tokenUrl', 'issuer', 'headers', 'oauth']) {
+    if (agyServer[secret] != null) {
+      fail('mcp_config.json', `do not ship \`${secret}\`. Antigravity discovers OAuth in the client`);
+    }
+  }
+}
+
 // ---------------------------------------------------------------- nothing points at a non-production environment
 for (const path of files.filter((p) => !p.startsWith('.git/'))) {
   if (['CONTRIBUTING.md', 'AGENTS.md', 'scripts/validate.mjs', 'scripts/selftest.mjs'].includes(path)) continue;
@@ -291,11 +343,17 @@ const frontmatter = (text) => {
   const end = text.indexOf('\n---', 3);
   if (end === -1) return null;
   const fields = new Map();
+  const plainColons = [];
   for (const line of text.slice(4, end).split('\n')) {
     const match = /^([A-Za-z-]+):\s*(.*)$/.exec(line);
-    if (match) fields.set(match[1], match[2].trim());
+    if (!match) continue;
+    const value = match[2].trim();
+    fields.set(match[1], value);
+    // A YAML parser treats an unquoted ": " as a nested mapping. Quoting the value is what keeps the field.
+    const quoted = (value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"));
+    if (!quoted && value.includes(': ')) plainColons.push(match[1]);
   }
-  return fields;
+  return { fields, plainColons };
 };
 
 const skillDir = `${PLUGIN}/skills`;
@@ -309,10 +367,14 @@ for (const dir of skills) {
     continue;
   }
   const text = read(path);
-  const fields = frontmatter(text);
-  if (!fields) {
+  const parsed = frontmatter(text);
+  if (!parsed) {
     fail(path, 'must open with YAML frontmatter on line 1');
     continue;
+  }
+  const fields = parsed.fields;
+  for (const key of parsed.plainColons) {
+    fail(path, `\`${key}\` has an unquoted ": ", so a YAML parser rejects the frontmatter`);
   }
   for (const key of fields.keys()) {
     if (!PORTABLE_FIELDS.has(key)) {
