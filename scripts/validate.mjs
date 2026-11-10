@@ -3,7 +3,7 @@
 // names really exists on the connector, that no skill has drifted outside the portable Agent Skills fields, and that
 // nothing here points at a development environment.
 
-import { readFileSync, readdirSync, existsSync, lstatSync, readlinkSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, lstatSync, statSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -231,13 +231,28 @@ if (gemini && portable) {
     fail('gemini-extension.json', 'contextFileName must be GEMINI.md');
   }
   if (!existsSync(join(ROOT, 'GEMINI.md'))) fail('GEMINI.md', 'is missing');
-  // Gemini CLI loads skills/<name>/SKILL.md from the extension root. A symlink keeps one copy with the
-  // other clients. A real directory here would drift.
-  const skillsLink = join(ROOT, 'skills');
-  if (!existsSync(skillsLink) || !lstatSync(skillsLink).isSymbolicLink()) {
-    fail('skills', 'must be a symlink to plugins/freightright/skills');
-  } else if (readlinkSync(skillsLink) !== 'plugins/freightright/skills') {
-    fail('skills', 'must point at plugins/freightright/skills');
+  // Gemini CLI loads skills/<name>/SKILL.md from the extension root. It installs from a GitHub Release by copying
+  // the download, and rewrites a symlink to the temporary folder it then deletes, so a symlink here loads no skill.
+  // The root skills/ is therefore a real copy of the plugin's skills, byte for byte (`npm run sync-skills`).
+  const geminiSkills = join(ROOT, 'skills');
+  const pluginSkills = join(ROOT, 'plugins/freightright/skills');
+  const filesUnder = (dir, prefix = '') =>
+    readdirSync(join(dir, prefix), { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? filesUnder(dir, join(prefix, e.name)) : [join(prefix, e.name)],
+    ).sort();
+  if (!existsSync(geminiSkills) || lstatSync(geminiSkills).isSymbolicLink() || !statSync(geminiSkills).isDirectory()) {
+    fail('skills', 'must be a real directory copying plugins/freightright/skills (run npm run sync-skills)');
+  } else {
+    const want = filesUnder(pluginSkills);
+    const have = filesUnder(geminiSkills);
+    const missing = want.filter((f) => !have.includes(f));
+    const extra = have.filter((f) => !want.includes(f));
+    const changed = want.filter(
+      (f) => have.includes(f) && !readFileSync(join(geminiSkills, f)).equals(readFileSync(join(pluginSkills, f))),
+    );
+    for (const [what, list] of [['missing', missing], ['not in the plugin', extra], ['differs from the plugin', changed]]) {
+      if (list.length) fail('skills', `${list.join(', ')} ${what} (run npm run sync-skills)`);
+    }
   }
   const server = gemini.mcpServers?.[SERVER_KEY];
   if (!server) fail('gemini-extension.json', `expected a server named "${SERVER_KEY}"`);

@@ -5,6 +5,13 @@ All notable changes to this plugin are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Gemini CLI loads the five skills when it installs from a GitHub Release. It copies the download and rewrote the
+  root `skills` symlink to the temporary folder it then deletes, so 0.2.1 installed with no skill ("No skills
+  discovered"). The root `skills/` is now a copy of `plugins/freightright/skills`; `npm run sync-skills` refreshes
+  it and the validator fails if the two differ by a byte.
+
 ## [0.2.1] — 2026-11-10
 
 ### Added

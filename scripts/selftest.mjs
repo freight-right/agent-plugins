@@ -42,10 +42,12 @@ const VALIDATOR_CASES = [
     json(d, 'gemini-extension.json', (v) => {
       v.mcpServers.freightright.httpUrl = 'https://dev-mcp.sm.freightright.com/mcp';
     })],
-  ['a Gemini CLI skills link that is not the plugin skills', (d) => {
-    rmSync(join(d, 'skills'));
-    symlinkSync('plugins/freightright/evals', join(d, 'skills'));
+  ['a Gemini CLI skills symlink, which its release install breaks', (d) => {
+    rmSync(join(d, 'skills'), { recursive: true });
+    symlinkSync('plugins/freightright/skills', join(d, 'skills'));
   }],
+  ['a Gemini CLI skills copy drifting from the plugin skills', (d) =>
+    edit(d, 'skills/instant-pricing/SKILL.md', (s) => `${s}\nAn edit made only in the Gemini copy.\n`)],
   ['a client manifest drifting from the others', (d) =>
     json(d, '.cursor-plugin/marketplace.json', (v) => { v.metadata.version = '9.9.9'; })],
   ['a tool with no mock, which would make a must-not-call check vacuous', (d) =>

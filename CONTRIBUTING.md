@@ -6,8 +6,9 @@
 .claude-plugin/marketplace.json   the marketplace Claude Code reads
 gemini-extension.json             the Gemini CLI extension gallery manifest (repository root)
 GEMINI.md                         connector facts Gemini CLI loads with the extension
-skills -> plugins/freightright/skills
-                                  Gemini CLI reads skills/<name>/SKILL.md from the extension root
+skills/                           a copy of plugins/freightright/skills: Gemini CLI reads skills/<name>/SKILL.md
+                                  from the extension root and breaks a symlink there when it installs a release.
+                                  Edit the plugin's skills, then `npm run sync-skills`; the validator fails on drift
 contract/tools.json               a snapshot of the connector's real tool surface, with the fr-mcp revision
 plugins/freightright/
   plugin.json                     portable manifest
