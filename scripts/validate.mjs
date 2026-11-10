@@ -325,7 +325,7 @@ else {
 
 // ---------------------------------------------------------------- nothing points at a non-production environment
 for (const path of files.filter((p) => !p.startsWith('.git/'))) {
-  if (['CONTRIBUTING.md', 'AGENTS.md', 'scripts/validate.mjs', 'scripts/selftest.mjs'].includes(path)) continue;
+  if (['CONTRIBUTING.md', 'CONTRIBUTING-AGENTS.md', 'scripts/validate.mjs', 'scripts/selftest.mjs'].includes(path)) continue;
   const text = read(path);
   // An environment prefix is a whole label: `dev-mcp.…` and `staging.…`, never `developers.freightright.com`.
   const stray = text.match(/https?:\/\/(?:[a-z0-9-]+\.)*(?:dev|staging|qa|uat)[-.][a-z0-9.-]+|https?:\/\/(?:localhost|127\.0\.0\.1)/i);

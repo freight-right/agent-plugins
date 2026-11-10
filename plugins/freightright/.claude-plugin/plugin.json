@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "freightright",
   "displayName": "Freight Right",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Freight rates, quote requests, and shipment tracking with billing, customs, documents and a feed of what changed, from your Freight Right account, with skills that keep billing and bookings right.",
   "author": {
     "name": "Freight Right",

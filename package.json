@@ -1,6 +1,6 @@
 {
   "name": "freightright-agent-plugins",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "description": "Validation for the Freight Right agent plugins marketplace.",
   "license": "MIT",
