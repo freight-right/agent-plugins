@@ -3,7 +3,7 @@
 // here was a real false pass at some point, so each one stays as a regression.
 
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, cpSync, rmSync, readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
+import { mkdtempSync, cpSync, rmSync, readFileSync, symlinkSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -38,6 +38,14 @@ const VALIDATOR_CASES = [
     json(d, 'plugins/freightright/.mcp.json', (v) => {
       v.mcpServers.freightright.url = 'https://dev-mcp.sm.freightright.com/mcp';
     })],
+  ['a Gemini CLI connector URL that is not production', (d) =>
+    json(d, 'gemini-extension.json', (v) => {
+      v.mcpServers.freightright.httpUrl = 'https://dev-mcp.sm.freightright.com/mcp';
+    })],
+  ['a Gemini CLI skills link that is not the plugin skills', (d) => {
+    rmSync(join(d, 'skills'));
+    symlinkSync('plugins/freightright/evals', join(d, 'skills'));
+  }],
   ['a client manifest drifting from the others', (d) =>
     json(d, '.cursor-plugin/marketplace.json', (v) => { v.metadata.version = '9.9.9'; })],
   ['a tool with no mock, which would make a must-not-call check vacuous', (d) =>

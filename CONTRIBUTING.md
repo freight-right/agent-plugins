@@ -4,6 +4,10 @@
 
 ```
 .claude-plugin/marketplace.json   the marketplace Claude Code reads
+gemini-extension.json             the Gemini CLI extension gallery manifest (repository root)
+GEMINI.md                         connector facts Gemini CLI loads with the extension
+skills -> plugins/freightright/skills
+                                  Gemini CLI reads skills/<name>/SKILL.md from the extension root
 contract/tools.json               a snapshot of the connector's real tool surface, with the fr-mcp revision
 plugins/freightright/
   plugin.json                     portable manifest
@@ -29,6 +33,7 @@ prefer installing that way.
 | Codex CLI | `.agents/plugins/marketplace.json` | `.codex-plugin/plugin.json` |
 | Copilot CLI | `.github/plugin/marketplace.json` | root `plugin.json` |
 | Cursor | `.cursor-plugin/marketplace.json` | `.cursor-plugin/plugin.json` |
+| Gemini CLI | GitHub topic `gemini-cli-extension` after merge | root `gemini-extension.json` |
 | Grok | none — it scans `plugins/*/` | root `plugin.json` (the portable manifest) |
 | Muse Code | `.agents/plugins/marketplace.json` or `.claude-plugin/marketplace.json`, whichever it finds first | root `plugin.json` (the portable manifest) |
 
@@ -153,15 +158,18 @@ release; see `plugins/freightright/evals/README.md`.
    python scripts/export_contract.py --fr-mcp ../fr-mcp
    ```
    If a tool was added, removed or renamed, update the skills and the mocks, and say so in the changelog.
-2. Bump the version. Eight files state it, in four different shapes, so there is one command and no hand-editing:
+2. Bump the version. Nine files state it, in several shapes, so there is one command and no hand-editing:
    ```sh
    npm run set-version -- 0.2.0
    ```
-   The validator checks all eight agree. A bump makes an update *detectable*; it does not update anyone
+   The validator checks all nine agree. A bump makes an update *detectable*; it does not update anyone
    automatically — each client has its own update action.
 3. Run the eval suite on a pinned model with three trials, and record the model and commit — the gate
    refuses to run without both.
 4. Update `CHANGELOG.md`.
+5. Publish a GitHub Release whose tag is `v` plus the version, for example `v0.2.0`. Gemini CLI installs the
+   latest release, not the default branch, and it detects updates from that tag. A version that exists only as
+   commits does not reach Gemini CLI. The repository already has a release, so there is no clone fallback.
 
 ## Commits
 

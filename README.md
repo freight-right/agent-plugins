@@ -6,13 +6,13 @@
 
 <p>Freight rates, quote requests and shipment tracking from your Freight Right account.</p>
 
-<p><b>Claude Code · Codex · GitHub Copilot CLI · Cursor · Grok · Muse Code</b></p>
+<p><b>Claude Code · Codex · GitHub Copilot CLI · Cursor · Gemini CLI · Grok · Muse Code</b></p>
 
 <p>
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-1e3063">
   <img alt="Model Context Protocol" src="https://img.shields.io/badge/MCP-streamable%20HTTP-1e3063">
   <img alt="Auth: OAuth 2.1 + PKCE" src="https://img.shields.io/badge/auth-OAuth%202.1%20%2B%20PKCE-1e3063">
-  <img alt="Clients: Claude Code, Codex, Copilot CLI, Cursor, Grok, Muse Code" src="https://img.shields.io/badge/clients-Claude%20Code%20%7C%20Codex%20%7C%20Copilot%20%7C%20Cursor%20%7C%20Grok%20%7C%20Muse-1e3063">
+  <img alt="Clients: Claude Code, Codex, Copilot CLI, Cursor, Gemini CLI, Grok, Muse Code" src="https://img.shields.io/badge/clients-Claude%20Code%20%7C%20Codex%20%7C%20Copilot%20%7C%20Cursor%20%7C%20Gemini%20%7C%20Grok%20%7C%20Muse-1e3063">
 </p>
 
 </div>
@@ -148,6 +148,24 @@ Cursor takes a full git URL rather than `owner/repo`, and indexes the default br
 
 *From the Cursor marketplace*: once the listing is live, install with one click and no URL to paste.
 
+**Gemini CLI**
+
+Gemini CLI installs the latest GitHub Release, not the default branch. It clones the repository only when the
+repository has no release at all. The current release does not contain `gemini-extension.json`, so this command
+fails with `configuration file not found` until a release tag includes the manifest:
+
+```sh
+gemini extensions install https://github.com/freight-right/agent-plugins
+```
+
+After that release, run `/mcp auth freightright` and sign in with your Shipment Manager account. Gemini CLI
+discovers the OAuth endpoints from the connector and registers a client dynamically. There is no client id or
+secret in this repository. The extension's tool timeout is already set to 60 seconds. Later updates follow the
+release tag.
+
+Once the repository carries the `gemini-cli-extension` GitHub topic, the same extension appears in the
+[Gemini CLI extension gallery](https://geminicli.com/extensions).
+
 ### Supported clients
 
 | Client | Installs | Skills work |
@@ -156,6 +174,7 @@ Cursor takes a full git URL rather than `owner/repo`, and indexes the default br
 | Codex CLI 0.155.1 | Verified | Verified |
 | Copilot CLI 1.0.87 | Verified | Verified |
 | Cursor 2.2.44 | Verified | Verified |
+| Gemini CLI | Pending the next GitHub Release | The five skills, via a `skills` symlink |
 | Grok 1.0.40 | Verified | Verified |
 | Muse Code 1.3.0 | Verified, behind `MUSE_EXPERIMENTAL_PLUGINS` | Verified |
 
@@ -163,7 +182,9 @@ Each client is given a manifest at the path it looks for, rather than being made
 vendor's directory. Grok and Muse Code are the exceptions that prove the point: both read the open
 [Agent Plugins](https://agent-plugins.org) manifest — Muse Code reads the Codex or Claude Code catalog as well — so
 neither needs anything of its own. Muse Code installs the skills only: its plugin format cannot carry an authenticated
-MCP server yet, which is why its install ends in a settings entry and a sign-in.
+MCP server yet, which is why its install ends in a settings entry and a sign-in. Gemini CLI reads the root
+`gemini-extension.json` and `GEMINI.md`. Its `skills` directory is a symlink to `plugins/freightright/skills`, so
+it loads the same five skills.
 
 The production connector the plugin ships, `https://mcp.freightright.com/mcp`, is live: Freight Right's scripted
 canary — a registered MCP client that signs in through the same OAuth flow these clients use — completes the sign-in
