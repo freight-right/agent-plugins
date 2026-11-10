@@ -3,7 +3,7 @@
 All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
-## [Unreleased]
+## [0.2.3] - 2026-11-10
 
 ### Added
 
@@ -15,6 +15,8 @@ All notable changes to this plugin are documented here. The format follows
 
 - The `quote-requests` skill description is quoted. An unquoted colon made YAML parsers drop the skill's name and
   description.
+- Repository notes moved from root `AGENTS.md` to `CONTRIBUTING-AGENTS.md`. Antigravity strict validation treated
+  the root file as a rule the plugin never loads. Connector facts stay in `rules/AGENTS.md`.
 
 ## [0.2.2] — 2026-11-10
 

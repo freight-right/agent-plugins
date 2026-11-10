@@ -8,7 +8,7 @@ gemini-extension.json             the Gemini CLI extension gallery manifest (rep
 gemini-context.md                 connector facts Gemini CLI loads with the extension
 .antigravity-plugin/plugin.json   the Antigravity plugin manifest
 mcp_config.json                   the Antigravity MCP server (`serverUrl`, OAuth in the client)
-AGENTS.md                         notes for agents working in this repository
+CONTRIBUTING-AGENTS.md            notes for agents working in this repository
 rules/AGENTS.md                   connector facts Antigravity loads with the plugin
 skills/                           a copy of plugins/freightright/skills: Gemini CLI and Antigravity read skills/<name>/SKILL.md
                                   from the extension root and breaks a symlink there when it installs a release.
