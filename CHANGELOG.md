@@ -5,6 +5,8 @@ All notable changes to this plugin are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-11-10
+
 ### Fixed
 
 - Gemini CLI loads the five skills when it installs from a GitHub Release. It copies the download and rewrote the
