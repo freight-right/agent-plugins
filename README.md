@@ -6,7 +6,7 @@
 
 <p>Freight rates, quote requests and shipment tracking from your Freight Right account.</p>
 
-<p><b>Claude Code · Codex · GitHub Copilot CLI · Cursor · Gemini CLI · Grok · Muse Code</b></p>
+<p><b>Claude Code · Codex · GitHub Copilot CLI · Cursor · Gemini CLI · Antigravity · Grok · Muse Code</b></p>
 
 <p>
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-1e3063">
@@ -151,20 +151,31 @@ Cursor takes a full git URL rather than `owner/repo`, and indexes the default br
 **Gemini CLI**
 
 Gemini CLI installs the latest GitHub Release, not the default branch. It clones the repository only when the
-repository has no release at all. The current release does not contain `gemini-extension.json`, so this command
-fails with `configuration file not found` until a release tag includes the manifest:
+repository has no release at all. Release `v0.2.2` and later include `gemini-extension.json`:
 
 ```sh
 gemini extensions install https://github.com/freight-right/agent-plugins
 ```
 
-After that release, run `/mcp auth freightright` and sign in with your Shipment Manager account. Gemini CLI
-discovers the OAuth endpoints from the connector and registers a client dynamically. There is no client id or
-secret in this repository. The extension's tool timeout is already set to 60 seconds. Later updates follow the
-release tag.
+Then run `/mcp auth freightright` and sign in with your Shipment Manager account. Gemini CLI discovers the OAuth
+endpoints from the connector and registers a client dynamically. There is no client id or secret in this
+repository. The extension's tool timeout is already set to 60 seconds. Later updates follow the release tag.
 
 Once the repository carries the `gemini-cli-extension` GitHub topic, the same extension appears in the
 [Gemini CLI extension gallery](https://geminicli.com/extensions).
+
+**Antigravity**
+
+Antigravity 2.6.0 or later installs this repository as a plugin. It reads `.antigravity-plugin/plugin.json`,
+`mcp_config.json`, `rules/AGENTS.md`, and the five skills in `skills/`. The connector URL is
+`https://mcp.freightright.com/mcp`. Sign-in is OAuth in the client. There is no API key in this repository.
+
+```sh
+agy plugin install https://github.com/freight-right/agent-plugins
+```
+
+When the Freight Right server connects, Antigravity opens a browser so you can sign in with your Shipment Manager
+account. A price check asks carriers live, so the tool timeout is 120 seconds.
 
 ### Supported clients
 
@@ -175,6 +186,7 @@ Once the repository carries the `gemini-cli-extension` GitHub topic, the same ex
 | Copilot CLI 1.0.87 | Verified | Verified |
 | Cursor 2.2.44 | Verified | Verified |
 | Gemini CLI 0.44.1 | Verified, from the latest GitHub Release | Verified |
+| Antigravity desktop 2.31.0 and CLI 1.5.4 | Verified from a local path | Verified in the desktop app |
 | Grok 1.0.40 | Verified | Verified |
 | Muse Code 1.3.0 | Verified, behind `MUSE_EXPERIMENTAL_PLUGINS` | Verified |
 
@@ -183,14 +195,16 @@ vendor's directory. Grok and Muse Code are the exceptions that prove the point: 
 [Agent Plugins](https://agent-plugins.org) manifest — Muse Code reads the Codex or Claude Code catalog as well — so
 neither needs anything of its own. Muse Code installs the skills only: its plugin format cannot carry an authenticated
 MCP server yet, which is why its install ends in a settings entry and a sign-in. Gemini CLI reads the root
-`gemini-extension.json` and `GEMINI.md`. Its `skills` directory is a copy of `plugins/freightright/skills` that the
+`gemini-extension.json` and `gemini-context.md`. Its `skills` directory is a copy of `plugins/freightright/skills` that the
 validator keeps byte-identical, so it loads the same five skills; a symlink does not survive Gemini CLI's install
-from a release.
+from a release. Antigravity reads `.antigravity-plugin/plugin.json`, `mcp_config.json`, and `rules/AGENTS.md`, and
+it loads those same five skills.
 
 The production connector the plugin ships, `https://mcp.freightright.com/mcp`, is live: Freight Right's scripted
 canary — a registered MCP client that signs in through the same OAuth flow these clients use — completes the sign-in
 against it as a Freight Right administrator, and Muse Code has completed one interactively against the development
-connector through `muse mcp login`. An interactive sign-in from each client against production is still to be
+connector through `muse mcp login`. Antigravity 2.31.0 completed an interactive sign-in against production and a
+read-only shipment lookup. An interactive sign-in from each other client against production is still to be
 recorded here. Installing and using the skills is what the table reports.
 
 ## What the connector can do

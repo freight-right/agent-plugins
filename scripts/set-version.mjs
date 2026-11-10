@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// One version lives in nine files. Bumping them by hand is how a release goes out inconsistent, so this is the
+// One version lives in ten files. Bumping them by hand is how a release goes out inconsistent, so this is the
 // only supported way to do it.
 //
 //   npm run set-version -- 0.2.0
@@ -28,6 +28,7 @@ const TARGETS = [
   ['.github/plugin/marketplace.json', (v) => { v.version = version; }],
   ['.cursor-plugin/marketplace.json', (v) => { v.metadata.version = version; }],
   ['gemini-extension.json', (v) => { v.version = version; }],
+  ['.antigravity-plugin/plugin.json', (v) => { v.version = version; }],
 ];
 
 for (const [file, set] of TARGETS) {

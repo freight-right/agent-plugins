@@ -1,0 +1,37 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "freightright",
+  "displayName": "Freight Right",
+  "version": "0.2.2",
+  "description": "Freight rates, quote requests, and shipment tracking with billing, customs, documents and a feed of what changed, from your Freight Right account, with skills that keep billing and bookings right.",
+  "logo": "assets/antigravity-logo.png",
+  "suggestedPrompts": [
+    "What shipments are arriving this week?",
+    "What would one 40-foot container from Shanghai to Los Angeles cost?",
+    "Find a shipment by its container or reference number."
+  ],
+  "author": {
+    "name": "Freight Right",
+    "email": "support@freightright.com",
+    "url": "https://www.freightright.com"
+  },
+  "homepage": "https://developers.freightright.com/setup/antigravity/",
+  "repository": "https://github.com/freight-right/agent-plugins",
+  "license": "MIT",
+  "keywords": [
+    "freight",
+    "freight rates",
+    "shipping",
+    "logistics",
+    "ltl",
+    "ocean freight",
+    "fcl",
+    "lcl",
+    "air freight",
+    "freight quote",
+    "shipment tracking",
+    "container tracking",
+    "supply chain",
+    "ecommerce shipping"
+  ]
+}

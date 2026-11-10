@@ -38,6 +38,10 @@ const VALIDATOR_CASES = [
     json(d, 'plugins/freightright/.mcp.json', (v) => {
       v.mcpServers.freightright.url = 'https://dev-mcp.sm.freightright.com/mcp';
     })],
+  ['an Antigravity connector URL that is not production', (d) =>
+    json(d, 'mcp_config.json', (v) => {
+      v.mcpServers.freightright.serverUrl = 'https://dev-mcp.sm.freightright.com/mcp';
+    })],
   ['a Gemini CLI connector URL that is not production', (d) =>
     json(d, 'gemini-extension.json', (v) => {
       v.mcpServers.freightright.httpUrl = 'https://dev-mcp.sm.freightright.com/mcp';

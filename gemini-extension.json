@@ -9,5 +9,5 @@
       "timeout": 60000
     }
   },
-  "contextFileName": "GEMINI.md"
+  "contextFileName": "gemini-context.md"
 }

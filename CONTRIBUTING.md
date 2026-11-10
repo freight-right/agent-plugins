@@ -5,8 +5,12 @@
 ```
 .claude-plugin/marketplace.json   the marketplace Claude Code reads
 gemini-extension.json             the Gemini CLI extension gallery manifest (repository root)
-GEMINI.md                         connector facts Gemini CLI loads with the extension
-skills/                           a copy of plugins/freightright/skills: Gemini CLI reads skills/<name>/SKILL.md
+gemini-context.md                 connector facts Gemini CLI loads with the extension
+.antigravity-plugin/plugin.json   the Antigravity plugin manifest
+mcp_config.json                   the Antigravity MCP server (`serverUrl`, OAuth in the client)
+rules/AGENTS.md                   connector facts Antigravity loads with the plugin
+.cursor/rules/repository.mdc      notes for agents working in this repository
+skills/                           a copy of plugins/freightright/skills: Gemini CLI and Antigravity read skills/<name>/SKILL.md
                                   from the extension root and breaks a symlink there when it installs a release.
                                   Edit the plugin's skills, then `npm run sync-skills`; the validator fails on drift
 contract/tools.json               a snapshot of the connector's real tool surface, with the fr-mcp revision
@@ -17,7 +21,7 @@ plugins/freightright/
   assets/                         anything the INSTALLED plugin references
   skills/<name>/SKILL.md          one skill per user intent
   evals/                          cases, graders and mocks
-assets/                           images for this README only; they are not part of an install
+assets/                           README images, plus assets/antigravity-logo.png for the Antigravity manifest
 assets/github/                    imagery GitHub itself shows; neither can be set through the API
 ```
 
@@ -35,6 +39,7 @@ prefer installing that way.
 | Copilot CLI | `.github/plugin/marketplace.json` | root `plugin.json` |
 | Cursor | `.cursor-plugin/marketplace.json` | `.cursor-plugin/plugin.json` |
 | Gemini CLI | GitHub topic `gemini-cli-extension` after merge | root `gemini-extension.json` |
+| Antigravity | `agy plugin install` of this repository | root `mcp_config.json`, `.antigravity-plugin/plugin.json` |
 | Grok | none — it scans `plugins/*/` | root `plugin.json` (the portable manifest) |
 | Muse Code | `.agents/plugins/marketplace.json` or `.claude-plugin/marketplace.json`, whichever it finds first | root `plugin.json` (the portable manifest) |
 
@@ -77,8 +82,9 @@ requiring the same field placement. Adding a client means adding a row to `MARKE
 Two rules that are easy to get wrong:
 
 - Only `plugin.json` belongs inside `.claude-plugin/`. Everything else sits at the plugin root.
-- An asset referenced by an installed manifest must live under `plugins/freightright/assets/`. Repository-root
-  assets render on GitHub but are absent from an installed plugin's cached directory.
+- An asset referenced by an installed Claude, Codex, Cursor, or Copilot manifest must live under
+  `plugins/freightright/assets/`. Repository-root assets render on GitHub but are absent from those clients' cached
+  plugin directory. Antigravity installs the repository root, so its logo is `assets/antigravity-logo.png`.
 
 ### GitHub imagery
 
@@ -159,11 +165,11 @@ release; see `plugins/freightright/evals/README.md`.
    python scripts/export_contract.py --fr-mcp ../fr-mcp
    ```
    If a tool was added, removed or renamed, update the skills and the mocks, and say so in the changelog.
-2. Bump the version. Nine files state it, in several shapes, so there is one command and no hand-editing:
+2. Bump the version. Ten files state it, in several shapes, so there is one command and no hand-editing:
    ```sh
    npm run set-version -- 0.2.0
    ```
-   The validator checks all nine agree. A bump makes an update *detectable*; it does not update anyone
+   The validator checks all ten agree. A bump makes an update *detectable*; it does not update anyone
    automatically — each client has its own update action.
 3. Run the eval suite on a pinned model with three trials, and record the model and commit — the gate
    refuses to run without both.
