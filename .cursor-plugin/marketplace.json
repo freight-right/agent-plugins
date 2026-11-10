@@ -7,7 +7,7 @@
   },
   "metadata": {
     "description": "Agent plugins for the Freight Right freight forwarding platform.",
-    "version": "0.2.1"
+    "version": "0.2.2"
   },
   "plugins": [
     {
