@@ -174,6 +174,8 @@ Antigravity 2.6.0 or later installs this repository as a plugin. It reads `.anti
 agy plugin install https://github.com/freight-right/agent-plugins
 ```
 
+To install a branch before it is the default, append `/tree/<branch>` to that URL.
+
 When the Freight Right server connects, Antigravity opens a browser so you can sign in with your Shipment Manager
 account. A price check asks carriers live, so the tool timeout is 120 seconds.
 
@@ -186,7 +188,7 @@ account. A price check asks carriers live, so the tool timeout is 120 seconds.
 | Copilot CLI 1.0.87 | Verified | Verified |
 | Cursor 2.2.44 | Verified | Verified |
 | Gemini CLI 0.44.1 | Verified, from the latest GitHub Release | Verified |
-| Antigravity desktop 2.31.0 and CLI 1.5.4 | Verified from a local path | Verified in the desktop app |
+| Antigravity desktop 2.31.0 and CLI 1.5.4 | Verified, from a local path and a GitHub branch | Verified in the desktop app |
 | Grok 1.0.40 | Verified | Verified |
 | Muse Code 1.3.0 | Verified, behind `MUSE_EXPERIMENTAL_PLUGINS` | Verified |
 
