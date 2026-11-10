@@ -12,6 +12,7 @@
     "selftest": "node scripts/selftest.mjs",
     "test": "npm run validate && npm run selftest",
     "set-version": "node scripts/set-version.mjs",
-    "compare-skills": "node scripts/compare-skills.mjs"
+    "compare-skills": "node scripts/compare-skills.mjs",
+    "sync-skills": "node scripts/sync-skills.mjs"
   }
 }
