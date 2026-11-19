@@ -3,6 +3,17 @@
 All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+### Added
+
+- The customer's businesses: `freightright_list_business_profiles`, `freightright_create_business_profile` and
+  `freightright_select_business_profile`, under the new `business_profiles:write` permission (listing rides on
+  `bookings:write`). A prepared booking first asks who it bills; when the customer needs to add or choose a business
+  it refuses with `business_profile_required` or `business_choice_required` and names the tool to call next.
+- The `booking-handoff` skill says how to handle those refusals. Contract, mocks and the eval tool list refreshed —
+  thirty-nine tools.
+
 ## [0.2.3] - 2026-11-10
 
 ### Added
