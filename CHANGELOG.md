@@ -5,6 +5,8 @@ All notable changes to this plugin are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-20
+
 ### Added
 
 - The customer's businesses: `freightright_list_business_profiles`, `freightright_create_business_profile` and
