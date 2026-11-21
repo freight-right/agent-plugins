@@ -29,7 +29,7 @@
     },
     {
       "name": "freightright_create_business_profile",
-      "description": "Add a business to the customer's account: the company their bookings bill and Freight Right invoices. Ask the customer for its legal name, main address (United States or Canada, no PO boxes) and phone; the account's name and e-mail fill the contact and the invoice e-mail unless they give another invoice e-mail. Only with `authorized: true`, after the customer said they are authorized to book shipments for this business and accept the booking terms: they confirm it themselves on the Freight Right booking page before its first booking. It is set up as a company with Freight Right at once (`status` setting_up, usually ready within seconds) and can be priced and booked meanwhile; the first business becomes the default. Adding the same business again returns it. An account has a limit of businesses.",
+      "description": "Add a business to the customer's account: the company their bookings bill and Freight Right invoices. Ask the customer for its legal name, main address (any country, no PO boxes) and phone; the account's name and e-mail fill the contact and the invoice e-mail unless they give another invoice e-mail. Only with `authorized: true`, after the customer said they are authorized to book shipments for this business and accept the booking terms: they confirm it themselves on the Freight Right booking page before its first booking. It is set up as a company with Freight Right at once (`status` setting_up, usually ready within seconds) and can be priced and booked meanwhile; the first business becomes the default. Adding the same business again returns it. An account has a limit of businesses.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -51,27 +51,13 @@
             "minLength": 1,
             "type": "string"
           },
-          "state": {
-            "description": "2-letter state or province code, like CA or ON.",
+          "country": {
+            "description": "2-letter country code, like US, CA or GB.",
             "pattern": "^[A-Za-z]{2}$",
             "type": "string"
           },
-          "postal_code": {
-            "description": "ZIP or postal code.",
-            "maxLength": 10,
-            "minLength": 3,
-            "type": "string"
-          },
-          "country": {
-            "description": "United States or Canada.",
-            "enum": [
-              "US",
-              "CA"
-            ],
-            "type": "string"
-          },
           "phone": {
-            "description": "Main phone number.",
+            "description": "Main phone number, as the customer gives it: with or without a country code.",
             "maxLength": 25,
             "minLength": 7,
             "type": "string"
@@ -80,6 +66,32 @@
             "const": true,
             "description": "True only after the customer said they are authorized to book shipments for this business and accept the booking terms.",
             "type": "boolean"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "maxLength": 25,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "In the United States and Canada, required: the 2-letter state or province code, like CA or ON. In any other country the state or region, optional."
+          },
+          "postal_code": {
+            "anyOf": [
+              {
+                "maxLength": 10,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "ZIP or postal code. Required in the United States and Canada, optional elsewhere."
           },
           "address_line2": {
             "anyOf": [
@@ -133,8 +145,6 @@
           "legal_name",
           "address_line1",
           "city",
-          "state",
-          "postal_code",
           "country",
           "phone",
           "authorized"
@@ -2609,7 +2619,7 @@
     },
     {
       "name": "freightright_prepare_instant_booking",
-      "description": "Prepare a booking of one offer from a price check and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: no assistant can submit a booking — only the customer, signed in to Freight Right, can, by clicking on that page. Give them the link and tell them what it will book. Needs the `pricing_id` and the `offer_id` of an offer that is still bookable: a price check without `bookable_until`, or whose `bookable_until` has passed, is refused and nothing is prepared. The price, the carrier and the terms are taken from that offer as it was shown, and Freight Right refuses the booking if anything about it has changed since. The link lasts up to 30 minutes, or until the offer stops being bookable, whichever is sooner; preparing the same PENDING booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided.",
+      "description": "Prepare a booking of one offer from a price check and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: no assistant can submit a booking — only the customer, signed in to Freight Right, can, by clicking on that page. Give them the link and tell them what it will book. Needs the `pricing_id` and the `offer_id` of an offer that is still bookable: a price check without `bookable_until`, or whose `bookable_until` has passed, is refused and nothing is prepared. The price, the carrier and the terms are taken from that offer as it was shown, and Freight Right refuses the booking if anything about it has changed since. The link lasts up to 30 minutes, or until the offer stops being bookable, whichever is sooner; preparing the same PENDING booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided. PICKUP AND DELIVERY DETAILS (`pickup`, `delivery`, `references`, `load`) are optional: give what the customer told you, never a guess. Freight Right checks them before any link is made and names a field that is missing or not valid (nothing is prepared then). The customer is shown ALL the details that will be on file and ticks two statements you cannot make for them: that the load is final, and that the details are accurate. Leave out what you do not know: an EMPTY text erases what is on file for that field. A pickup date or a window can be replaced here but not removed. On a Freight Right administrator's connection the details are saved as STAFF entries: nothing is required, the page asks for no statements, and they are never the customer's confirmation.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -2649,6 +2659,447 @@
             ],
             "default": null,
             "description": "Anything the booking team should know: cargo ready date, contacts, special handling."
+          },
+          "pickup": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "One end of a booking: where the freight is collected or delivered. Give only what the customer told\nyou or what you want to change; what is on file for the rest stays. Freight Right checks the result as a whole\nand names any field that is missing.",
+                "properties": {
+                  "name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "At a door: the facility name or owner. At a port: the shipper (pickup) or the consignee (delivery). Required for a booking."
+                  },
+                  "street": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The facility's street address, inside the postal area the price was given for (another ZIP needs a new price). Required at a door, not used at a port. No PO boxes."
+                  },
+                  "contact_name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Who to ask for at the facility. Required at a door."
+                  },
+                  "phone_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 50,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The number the driver or Freight Right calls, exactly as the customer gives it (with or without a country code). Required."
+                  },
+                  "email": {
+                    "anyOf": [
+                      {
+                        "maxLength": 254,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Optional."
+                  },
+                  "notes": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Anything about this stop: dock, gate code, hours."
+                  },
+                  "window_from": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Start of the pickup or delivery window, local time, on the hour or the half hour (HH:MM, 24-hour). Give it together with `window_until`, at a door only. A DELIVERY window is the customer's preference, not a guarantee: say so."
+                  },
+                  "window_until": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "End of that window (HH:MM)."
+                  },
+                  "date": {
+                    "anyOf": [
+                      {
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the day the freight is ready (YYYY-MM-DD), a weekday that is not a holiday and not in the past."
+                  },
+                  "ready_now": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the freight is ready now."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Where the freight is collected. At a DOOR: the facility (name, street, contact name, phone are required; pickup date or ready-now and a window are optional). At a PORT: the shipper (name and phone)."
+          },
+          "delivery": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "One end of a booking: where the freight is collected or delivered. Give only what the customer told\nyou or what you want to change; what is on file for the rest stays. Freight Right checks the result as a whole\nand names any field that is missing.",
+                "properties": {
+                  "name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "At a door: the facility name or owner. At a port: the shipper (pickup) or the consignee (delivery). Required for a booking."
+                  },
+                  "street": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The facility's street address, inside the postal area the price was given for (another ZIP needs a new price). Required at a door, not used at a port. No PO boxes."
+                  },
+                  "contact_name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Who to ask for at the facility. Required at a door."
+                  },
+                  "phone_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 50,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The number the driver or Freight Right calls, exactly as the customer gives it (with or without a country code). Required."
+                  },
+                  "email": {
+                    "anyOf": [
+                      {
+                        "maxLength": 254,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Optional."
+                  },
+                  "notes": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Anything about this stop: dock, gate code, hours."
+                  },
+                  "window_from": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Start of the pickup or delivery window, local time, on the hour or the half hour (HH:MM, 24-hour). Give it together with `window_until`, at a door only. A DELIVERY window is the customer's preference, not a guarantee: say so."
+                  },
+                  "window_until": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "End of that window (HH:MM)."
+                  },
+                  "date": {
+                    "anyOf": [
+                      {
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the day the freight is ready (YYYY-MM-DD), a weekday that is not a holiday and not in the past."
+                  },
+                  "ready_now": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the freight is ready now."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Where the freight is delivered. At a DOOR: the facility (name, street, contact name, phone are required; a window is optional and is a preference, not a guarantee). At a PORT: the consignee (name and phone). `date` and `ready_now` are for pickup only."
+          },
+          "references": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "Reference numbers and instructions for Freight Right's booking team. All optional.",
+                "properties": {
+                  "special_instructions": {
+                    "anyOf": [
+                      {
+                        "maxLength": 2000,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Anything the booking team should arrange."
+                  },
+                  "customer_reference": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The customer's own reference number."
+                  },
+                  "po_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Purchase order number."
+                  },
+                  "sales_order": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Sales order number."
+                  },
+                  "account_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Account number with the consignee."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Reference numbers and special instructions for Freight Right's booking team. All optional."
+          },
+          "load": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "What is shipped, as the customer declares it for the booking.",
+                "properties": {
+                  "commodity": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "What the freight is. Required for a booking."
+                  },
+                  "pieces": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "How it is packed, e.g. \"2 pallets\"."
+                  },
+                  "condition": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "NEW",
+                          "USED_HOUSEHOLD"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Required for a booking. NEW (new goods) · USED_HOUSEHOLD (used goods or household goods)."
+                  },
+                  "hazmat": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Whether the freight has hazardous materials. Required for a booking: ASK the customer, never assume. true on a price given without hazardous goods is refused: that freight needs a new price."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The load as the customer declares it: commodity, how it is packed, its condition and whether it has hazardous materials. The size and weight are the ones the price was given for and cannot be changed here."
           }
         },
         "required": [
@@ -2659,7 +3110,7 @@
     },
     {
       "name": "freightright_prepare_rate_request_booking",
-      "description": "Prepare a booking of the offer on a QUOTED quote request and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: only the customer, signed in to Freight Right, can submit it. Read the quote request first with freightright_get_rate_request; pass its id and the `offer_id` of the offer to book. Freight Right refuses the booking if the offer changed since it was read. The link lasts up to 30 minutes; preparing the same pending booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided. Only the account that created the request, a current member of the organization it is billed to, or an address Freight Right shared its quote with can book it: when the quote request says `may_book: false` this tool refuses, so read it first and do not offer to book what the user cannot.",
+      "description": "Prepare a booking of the offer on a QUOTED quote request and return a link the CUSTOMER opens to confirm it. NOTHING IS BOOKED BY THIS TOOL: only the customer, signed in to Freight Right, can submit it. Read the quote request first with freightright_get_rate_request; pass its id and the `offer_id` of the offer to book. Freight Right refuses the booking if the offer changed since it was read. The link lasts up to 30 minutes; preparing the same pending booking again returns the same link and does not extend it. Afterwards, read freightright_get_booking_operation to see what the customer decided. Only the account that created the request, a current member of the organization it is billed to, or an address Freight Right shared its quote with can book it: when the quote request says `may_book: false` this tool refuses, so read it first and do not offer to book what the user cannot. PICKUP AND DELIVERY DETAILS (`pickup`, `delivery`, `references`, `load`) are optional: give what the customer told you, never a guess. Freight Right checks them before any link is made and names a field that is missing or not valid (nothing is prepared then). The customer is shown ALL the details that will be on file and ticks two statements you cannot make for them: that the load is final, and that the details are accurate. Leave out what you do not know: an EMPTY text erases what is on file for that field. A pickup date or a window can be replaced here but not removed. On a Freight Right administrator's connection the details are saved as STAFF entries: nothing is required, the page asks for no statements, and they are never the customer's confirmation. Details our team already entered stay as they are unless you give another value for a field.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -2699,6 +3150,447 @@
             ],
             "default": null,
             "description": "Anything the booking team should know: cargo ready date, contacts, special handling."
+          },
+          "pickup": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "One end of a booking: where the freight is collected or delivered. Give only what the customer told\nyou or what you want to change; what is on file for the rest stays. Freight Right checks the result as a whole\nand names any field that is missing.",
+                "properties": {
+                  "name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "At a door: the facility name or owner. At a port: the shipper (pickup) or the consignee (delivery). Required for a booking."
+                  },
+                  "street": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The facility's street address, inside the postal area the price was given for (another ZIP needs a new price). Required at a door, not used at a port. No PO boxes."
+                  },
+                  "contact_name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Who to ask for at the facility. Required at a door."
+                  },
+                  "phone_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 50,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The number the driver or Freight Right calls, exactly as the customer gives it (with or without a country code). Required."
+                  },
+                  "email": {
+                    "anyOf": [
+                      {
+                        "maxLength": 254,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Optional."
+                  },
+                  "notes": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Anything about this stop: dock, gate code, hours."
+                  },
+                  "window_from": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Start of the pickup or delivery window, local time, on the hour or the half hour (HH:MM, 24-hour). Give it together with `window_until`, at a door only. A DELIVERY window is the customer's preference, not a guarantee: say so."
+                  },
+                  "window_until": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "End of that window (HH:MM)."
+                  },
+                  "date": {
+                    "anyOf": [
+                      {
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the day the freight is ready (YYYY-MM-DD), a weekday that is not a holiday and not in the past."
+                  },
+                  "ready_now": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the freight is ready now."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Where the freight is collected. At a DOOR: the facility (name, street, contact name, phone are required; pickup date or ready-now and a window are optional). At a PORT: the shipper (name and phone)."
+          },
+          "delivery": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "One end of a booking: where the freight is collected or delivered. Give only what the customer told\nyou or what you want to change; what is on file for the rest stays. Freight Right checks the result as a whole\nand names any field that is missing.",
+                "properties": {
+                  "name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "At a door: the facility name or owner. At a port: the shipper (pickup) or the consignee (delivery). Required for a booking."
+                  },
+                  "street": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The facility's street address, inside the postal area the price was given for (another ZIP needs a new price). Required at a door, not used at a port. No PO boxes."
+                  },
+                  "contact_name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Who to ask for at the facility. Required at a door."
+                  },
+                  "phone_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 50,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The number the driver or Freight Right calls, exactly as the customer gives it (with or without a country code). Required."
+                  },
+                  "email": {
+                    "anyOf": [
+                      {
+                        "maxLength": 254,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Optional."
+                  },
+                  "notes": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Anything about this stop: dock, gate code, hours."
+                  },
+                  "window_from": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Start of the pickup or delivery window, local time, on the hour or the half hour (HH:MM, 24-hour). Give it together with `window_until`, at a door only. A DELIVERY window is the customer's preference, not a guarantee: say so."
+                  },
+                  "window_until": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "End of that window (HH:MM)."
+                  },
+                  "date": {
+                    "anyOf": [
+                      {
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the day the freight is ready (YYYY-MM-DD), a weekday that is not a holiday and not in the past."
+                  },
+                  "ready_now": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the freight is ready now."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Where the freight is delivered. At a DOOR: the facility (name, street, contact name, phone are required; a window is optional and is a preference, not a guarantee). At a PORT: the consignee (name and phone). `date` and `ready_now` are for pickup only."
+          },
+          "references": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "Reference numbers and instructions for Freight Right's booking team. All optional.",
+                "properties": {
+                  "special_instructions": {
+                    "anyOf": [
+                      {
+                        "maxLength": 2000,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Anything the booking team should arrange."
+                  },
+                  "customer_reference": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The customer's own reference number."
+                  },
+                  "po_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Purchase order number."
+                  },
+                  "sales_order": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Sales order number."
+                  },
+                  "account_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Account number with the consignee."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Reference numbers and special instructions for Freight Right's booking team. All optional."
+          },
+          "load": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "What is shipped, as the customer declares it for the booking.",
+                "properties": {
+                  "commodity": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "What the freight is. Required for a booking."
+                  },
+                  "pieces": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "How it is packed, e.g. \"2 pallets\"."
+                  },
+                  "condition": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "NEW",
+                          "USED_HOUSEHOLD"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Required for a booking. NEW (new goods) · USED_HOUSEHOLD (used goods or household goods)."
+                  },
+                  "hazmat": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Whether the freight has hazardous materials. Required for a booking: ASK the customer, never assume. true on a price given without hazardous goods is refused: that freight needs a new price."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The load as the customer declares it: commodity, how it is packed, its condition and whether it has hazardous materials. The size and weight are the ones the price was given for and cannot be changed here."
           }
         },
         "required": [
@@ -3572,7 +4464,7 @@
     },
     {
       "name": "freightright_select_quote_offer",
-      "description": "Make one of a draft quote's offers its offer — a Freight Right administrator's connection only. Give the `offer_id` and `revision` exactly as freightright_get_quote_offers listed them, and only the offer the user chose: tell them its carrier and total first. WHETHER YOUR USER IS ASKED TO CONFIRM BEFORE THIS IS SENT DEPENDS ON THEIR ASSISTANT SETTINGS, NOT ON FREIGHT RIGHT. A quote keeps the first offer selected; changing it is done on the quote page in Shipment Manager. If the offer changed or is no longer listed, list the offers again. The quote stays a draft until it is sent.",
+      "description": "Make one of a draft quote's offers its offer — a Freight Right administrator's connection only. Give the `offer_id` and `revision` exactly as freightright_get_quote_offers listed them, and only the offer the user chose: tell them its carrier and total first. WHETHER YOUR USER IS ASKED TO CONFIRM BEFORE THIS IS SENT DEPENDS ON THEIR ASSISTANT SETTINGS, NOT ON FREIGHT RIGHT. A quote keeps the first offer selected; changing it is done on the quote page in Shipment Manager. If the offer changed, list the offers again. The list is the last search Freight Right saved for the quote: an offer it can no longer save (its price expired) stays listed, and a new search is started on the quote page in Shipment Manager (Search Again), not here. The quote stays a draft until it is sent.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -4488,6 +5380,510 @@
         "required": [
           "request_id",
           "revision"
+        ]
+      }
+    },
+    {
+      "name": "freightright_update_booking_details",
+      "description": "Change the pickup and delivery details of a booking the customer has ALREADY requested and that is not booked yet (`booking_details.editable` is true on freightright_get_quote). THIS TAKES EFFECT AT ONCE: there is no confirmation page, the change is saved when this tool returns and Freight Right's team is notified. It books nothing and requests nothing a second time. A CUSTOMER changes a quote billed to one of their organizations, a company-name quote they created, or one Freight Right shared with them: read the quote, tell the customer exactly what will change, get their answer to the two statements below, and send `booking_confirmation_token` and both statements with the change. A FREIGHT RIGHT ADMINISTRATOR enters or changes the details of any quote, at any status, as a staff entry: nothing is required, both statements are LEFT OUT (they are the customer's and are refused from staff), the token is optional, and the change is never recorded as the customer's confirmation. Always send `version` as the read showed it, and ONLY the fields to change: everything left out stays as it is on file (an empty text empties a field). A field that is not valid is refused with its name and nothing is saved. Sending what is already on file changes nothing and notifies nobody. If the details or the shipment changed since your read, nothing is changed and the answer says what is on file now.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "quote_number": {
+            "description": "The quote of the requested booking, from freightright_get_quote.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "version": {
+            "description": "`booking_details.version` as you last read it; 0 when none are on file.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "booking_confirmation_token": {
+            "anyOf": [
+              {
+                "pattern": "^bct_[0-9a-f]{32}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "`booking_confirmation_token` exactly as you last read it with the quote: it stands for the shipment and the price the customer confirms these details for. REQUIRED for a customer. Optional for a Freight Right administrator (a quote that has not been sent has none)."
+          },
+          "final_size_confirmed": {
+            "anyOf": [
+              {
+                "const": true,
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "REQUIRED for a customer: true ONLY after the customer told you, in this conversation, that the load on the quote is the final packed size and weight (for containers: the equipment). Never assume it. A Freight Right administrator leaves it out."
+          },
+          "accuracy_confirmed": {
+            "anyOf": [
+              {
+                "const": true,
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "REQUIRED for a customer: true ONLY after the customer told you these details are accurate and that they understand changes found by the carrier may result in additional charges. Never assume it. A Freight Right administrator leaves it out."
+          },
+          "pickup": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "One end of a booking: where the freight is collected or delivered. Give only what the customer told\nyou or what you want to change; what is on file for the rest stays. Freight Right checks the result as a whole\nand names any field that is missing.",
+                "properties": {
+                  "name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "At a door: the facility name or owner. At a port: the shipper (pickup) or the consignee (delivery). Required for a booking."
+                  },
+                  "street": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The facility's street address, inside the postal area the price was given for (another ZIP needs a new price). Required at a door, not used at a port. No PO boxes."
+                  },
+                  "contact_name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Who to ask for at the facility. Required at a door."
+                  },
+                  "phone_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 50,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The number the driver or Freight Right calls, exactly as the customer gives it (with or without a country code). Required."
+                  },
+                  "email": {
+                    "anyOf": [
+                      {
+                        "maxLength": 254,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Optional."
+                  },
+                  "notes": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Anything about this stop: dock, gate code, hours."
+                  },
+                  "window_from": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Start of the pickup or delivery window, local time, on the hour or the half hour (HH:MM, 24-hour). Give it together with `window_until`, at a door only. A DELIVERY window is the customer's preference, not a guarantee: say so."
+                  },
+                  "window_until": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "End of that window (HH:MM)."
+                  },
+                  "date": {
+                    "anyOf": [
+                      {
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the day the freight is ready (YYYY-MM-DD), a weekday that is not a holiday and not in the past."
+                  },
+                  "ready_now": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the freight is ready now."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Where the freight is collected. At a DOOR: the facility (name, street, contact name, phone are required; pickup date or ready-now and a window are optional). At a PORT: the shipper (name and phone)."
+          },
+          "delivery": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "One end of a booking: where the freight is collected or delivered. Give only what the customer told\nyou or what you want to change; what is on file for the rest stays. Freight Right checks the result as a whole\nand names any field that is missing.",
+                "properties": {
+                  "name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "At a door: the facility name or owner. At a port: the shipper (pickup) or the consignee (delivery). Required for a booking."
+                  },
+                  "street": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The facility's street address, inside the postal area the price was given for (another ZIP needs a new price). Required at a door, not used at a port. No PO boxes."
+                  },
+                  "contact_name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Who to ask for at the facility. Required at a door."
+                  },
+                  "phone_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 50,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The number the driver or Freight Right calls, exactly as the customer gives it (with or without a country code). Required."
+                  },
+                  "email": {
+                    "anyOf": [
+                      {
+                        "maxLength": 254,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Optional."
+                  },
+                  "notes": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Anything about this stop: dock, gate code, hours."
+                  },
+                  "window_from": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Start of the pickup or delivery window, local time, on the hour or the half hour (HH:MM, 24-hour). Give it together with `window_until`, at a door only. A DELIVERY window is the customer's preference, not a guarantee: say so."
+                  },
+                  "window_until": {
+                    "anyOf": [
+                      {
+                        "pattern": "^([01]\\d|2[0-3]):(00|30)$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "End of that window (HH:MM)."
+                  },
+                  "date": {
+                    "anyOf": [
+                      {
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the day the freight is ready (YYYY-MM-DD), a weekday that is not a holiday and not in the past."
+                  },
+                  "ready_now": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "PICKUP only: the freight is ready now."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Where the freight is delivered. At a DOOR: the facility (name, street, contact name, phone are required; a window is optional and is a preference, not a guarantee). At a PORT: the consignee (name and phone). `date` and `ready_now` are for pickup only."
+          },
+          "references": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "Reference numbers and instructions for Freight Right's booking team. All optional.",
+                "properties": {
+                  "special_instructions": {
+                    "anyOf": [
+                      {
+                        "maxLength": 2000,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Anything the booking team should arrange."
+                  },
+                  "customer_reference": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The customer's own reference number."
+                  },
+                  "po_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Purchase order number."
+                  },
+                  "sales_order": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Sales order number."
+                  },
+                  "account_number": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Account number with the consignee."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Reference numbers and special instructions for Freight Right's booking team. All optional."
+          },
+          "load": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "description": "What is shipped, as the customer declares it for the booking.",
+                "properties": {
+                  "commodity": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "What the freight is. Required for a booking."
+                  },
+                  "pieces": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "How it is packed, e.g. \"2 pallets\"."
+                  },
+                  "condition": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "NEW",
+                          "USED_HOUSEHOLD"
+                        ],
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Required for a booking. NEW (new goods) · USED_HOUSEHOLD (used goods or household goods)."
+                  },
+                  "hazmat": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Whether the freight has hazardous materials. Required for a booking: ASK the customer, never assume. true on a price given without hazardous goods is refused: that freight needs a new price."
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The load as the customer declares it: commodity, how it is packed, its condition and whether it has hazardous materials. The size and weight are the ones the price was given for and cannot be changed here."
+          }
+        },
+        "required": [
+          "quote_number",
+          "version"
         ]
       }
     },

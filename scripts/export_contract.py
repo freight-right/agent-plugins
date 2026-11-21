@@ -15,10 +15,13 @@ import base64
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 
 HERE = pathlib.Path(__file__).resolve().parent.parent
+# A model's docstring becomes its schema description. An internal reference in one stays out of this public snapshot.
+INTERNAL_REFERENCE = re.compile(r' \(SM-\d+\)')
 
 
 async def inventory(fr_mcp: pathlib.Path):
@@ -117,7 +120,8 @@ def main() -> int:
     }
     out = HERE / 'contract' / 'tools.json'
     # Match `JSON.stringify(value, null, 2)` exactly — the validator checks the bytes.
-    out.write_text(json.dumps(as_javascript_numbers(snapshot), indent=2, ensure_ascii=False) + '\n')
+    text = json.dumps(as_javascript_numbers(snapshot), indent=2, ensure_ascii=False) + '\n'
+    out.write_text(INTERNAL_REFERENCE.sub('', text))
     print(f'{out.relative_to(HERE)}: {len(tools)} tools, {len(resources)} resources, '
           f'{len(templates)} templates, {len(prompts)} prompts @ {snapshot["source"]["revision"][:12]}')
     return 0
