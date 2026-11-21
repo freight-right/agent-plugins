@@ -37,6 +37,27 @@ too long, say that the note is too long and ask the customer to shorten it — i
 The offer's identity and revision are what was shown to the customer. The server attaches them; you never pass a
 revision. If the offer has changed or expired upstream, the booking is refused rather than silently repriced.
 
+## The business a booking bills
+
+Where the connection lists the customer's businesses (`freightright_list_business_profiles`), a booking bills one of
+them: the company Freight Right invoices. Prices and quote requests that name no billing use the default one.
+
+A prepare tool that answers **`business_profile_required`** or **`business_choice_required`** prepared nothing. Its
+result names the tool to call next (`next_tool`):
+
+- `business_profile_required`: ask the customer for the business's legal name, main address and phone, and add it
+  with `freightright_create_business_profile` — only after they said they are authorized to book shipments for it.
+- `business_choice_required`: list them, ask which one this booking is for, and choose it with
+  `freightright_select_business_profile`.
+
+Then, for a quote request, choose the business for that request (`rate_request_id`) and prepare again; for an
+instant price, price the lane again (a new price check bills the default business) and prepare from it. Never pick a
+business for the customer.
+
+A business the assistant added is confirmed by the customer, on the booking page, before its first booking. A
+prepared booking keeps the business it was prepared for: if the customer changes the default afterwards, prepare
+again for a new link.
+
 ## Three different expiry times — keep them apart
 
 | Time | What it is |

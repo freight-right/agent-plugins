@@ -28,6 +28,120 @@
       }
     },
     {
+      "name": "freightright_create_business_profile",
+      "description": "Add a business to the customer's account: the company their bookings bill and Freight Right invoices. Ask the customer for its legal name, main address (United States or Canada, no PO boxes) and phone; the account's name and e-mail fill the contact and the invoice e-mail unless they give another invoice e-mail. Only with `authorized: true`, after the customer said they are authorized to book shipments for this business and accept the booking terms: they confirm it themselves on the Freight Right booking page before its first booking. It is set up as a company with Freight Right at once (`status` setting_up, usually ready within seconds) and can be priced and booked meanwhile; the first business becomes the default. Adding the same business again returns it. An account has a limit of businesses.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "legal_name": {
+            "description": "The legal name, as bookings and invoices show it. For a person shipping in their own name, their full legal name with entity_type 'individual'.",
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "address_line1": {
+            "description": "Street address (no PO boxes).",
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "city": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "state": {
+            "description": "2-letter state or province code, like CA or ON.",
+            "pattern": "^[A-Za-z]{2}$",
+            "type": "string"
+          },
+          "postal_code": {
+            "description": "ZIP or postal code.",
+            "maxLength": 10,
+            "minLength": 3,
+            "type": "string"
+          },
+          "country": {
+            "description": "United States or Canada.",
+            "enum": [
+              "US",
+              "CA"
+            ],
+            "type": "string"
+          },
+          "phone": {
+            "description": "Main phone number.",
+            "maxLength": 25,
+            "minLength": 7,
+            "type": "string"
+          },
+          "authorized": {
+            "const": true,
+            "description": "True only after the customer said they are authorized to book shipments for this business and accept the booking terms.",
+            "type": "boolean"
+          },
+          "address_line2": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Suite or unit."
+          },
+          "entity_type": {
+            "default": "business",
+            "description": "individual: a person shipping in their own name.",
+            "enum": [
+              "business",
+              "individual"
+            ],
+            "type": "string"
+          },
+          "invoice_email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Where invoices go; the account's e-mail when not given."
+          },
+          "website": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "legal_name",
+          "address_line1",
+          "city",
+          "state",
+          "postal_code",
+          "country",
+          "phone",
+          "authorized"
+        ]
+      }
+    },
+    {
       "name": "freightright_create_request_draft",
       "description": "Start a request to Freight Right's team — a spot rate, a contract inquiry, booking help, a shipment issue, a data correction, a PO discrepancy (what a container held against the purchase order: the shipment reference, which Freight Right verifies against the shipment before acting, the container, the PO number, the SKU, expected and found quantities) or a feature request — from the customer's own words (`message`, stored exactly as said) and the details you read from them (the slot arguments; give what the customer said, never a guess). Nothing is sent and nobody is notified: the draft is private until freightright_submit_request. The answer says what Freight Right understood, what is still missing and the ONE question to ask next; fill the answer in with freightright_update_request_draft, then show freightright_preview_request. BEFORE creating one, call freightright_list_requests: never file a duplicate of a request that is still open — continue the open one instead. The reply address is the account's own e-mail and the account is already known, so never ask for it; ask which organization only when the answer lists `organization` in `missing_fields`, and pass `billing_organization_id` from freightright_list_billing_organizations. The same message with the same details within 30 days returns that same request, whatever became of it (the answer says so in `replayed`). Needs a Freight Right account — free: sign up on Shipment Manager's sign-up page, then connect your assistant. A Freight Right administrator files requests for a customer on the staff page, not here. At most 20 drafts per organization per day; the answer says when the limit resets.",
       "inputSchema": {
@@ -1905,6 +2019,15 @@
       }
     },
     {
+      "name": "freightright_list_business_profiles",
+      "description": "List the customer's businesses: the companies a booking can bill and Freight Right invoices, the default one marked. Prices and quote requests that name no billing use the default; a booking needs one while Freight Right asks for it (the prepare tools say so). With several and no default, ask the customer which one and choose it with freightright_select_business_profile; with none, add one with freightright_create_business_profile. A Freight Right administrator has none. Read-only.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {}
+      }
+    },
+    {
       "name": "freightright_list_invoices",
       "description": "The customer's invoices across shipments, as the Billing page of Shipment Manager shows them: each accounting invoice with its shipment reference, dates, total, outstanding amount, paid or cancelled state and a PDF link valid for minutes; the first page also says how many are open and what is outstanding per currency. `open=true` keeps the unpaid ones (an outstanding amount, not cancelled), `open=false` the settled ones, omitted both. Never add amounts across currencies. Newest first, cursor-paged: follow `next_cursor` with the same `open`. A customer sees the invoices billed to its organizations; a Freight Right administrator every one. Read-only.",
       "inputSchema": {
@@ -3413,6 +3536,37 @@
         },
         "required": [
           "quote_number"
+        ]
+      }
+    },
+    {
+      "name": "freightright_select_business_profile",
+      "description": "Choose the business a booking bills. Without `rate_request_id` it becomes the customer's default, which new prices and quote requests use (an instant price already made keeps its billing: price again after choosing). With `rate_request_id` it bills that quote request, if it is not booked yet; Freight Right refuses one priced for another customer group (ask for a new quote). Use the id from freightright_list_business_profiles, as the customer chose it.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "business_profile_id": {
+            "description": "From freightright_list_business_profiles.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "rate_request_id": {
+            "anyOf": [
+              {
+                "pattern": "^rfq_[0-9a-f]{32}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The quote request to bill to it, not yet booked."
+          }
+        },
+        "required": [
+          "business_profile_id"
         ]
       }
     },
