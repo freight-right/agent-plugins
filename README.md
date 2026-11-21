@@ -211,7 +211,7 @@ recorded here. Installing and using the skills is what the table reports.
 
 ## What the connector can do
 
-Thirty-nine tools. Everything is read-only except the fourteen marked **write**, and only one call can ever spend part
+Forty tools. Everything is read-only except the fifteen marked **write**, and only one call can ever spend part
 of the monthly price-check allowance.
 
 | Area | Tools | |
@@ -222,7 +222,7 @@ of the monthly price-check allowance.
 | **Quote requests** | `freightright_preview_rate_request` · `freightright_submit_rate_request` **(write)** · `freightright_get_rate_request` | Ask Freight Right's pricing team |
 | **Quotes** | `freightright_list_quotes` · `freightright_get_quote` · `freightright_share_quote` **(write, administrators)** · `freightright_get_quote_offers` **(administrators)** · `freightright_select_quote_offer` **(write, administrators)** · `freightright_send_quote` **(write, administrators)** · `freightright_public_link` **(write)** · `freightright_change_public_link` **(write)** | Every quote, whatever created it, and one by its number with its offer; an administrator shares one with e-mail addresses, and finishes a draft: its offers, the one chosen and sending it; a customer gives their own quotes a public link, an administrator any quote |
 | **Requests to Freight Right's team** | `freightright_list_requests` · `freightright_create_request_draft` **(write)** · `freightright_update_request_draft` **(write)** · `freightright_preview_request` · `freightright_submit_request` **(write)** · `freightright_get_request` · `freightright_withdraw_request` **(write)** | A spot rate, a contract, booking help, a shipment problem, a correction, a PO discrepancy or a feature, in the customer's own words — sent only after they saw the preview and said yes, answered by e-mail |
-| **Bookings** | `freightright_prepare_instant_booking` **(write)** · `freightright_prepare_rate_request_booking` **(write)** · `freightright_get_booking_operation` | Prepare a link, then read the decision |
+| **Bookings** | `freightright_prepare_instant_booking` **(write)** · `freightright_prepare_rate_request_booking` **(write)** · `freightright_get_booking_operation` · `freightright_update_booking_details` **(write)** | Prepare a link, with the pickup and delivery details the customer gave, then read the decision; change those details while a requested booking is still under review (saved at once, no confirmation page) |
 | **Businesses** | `freightright_list_business_profiles` · `freightright_create_business_profile` **(write)** · `freightright_select_business_profile` **(write)** | The business a booking bills and Freight Right invoices: list them, add one (set up as a company at once) or choose the default; the customer confirms on the booking page that they may book for a business their assistant added |
 | **Shipments** | `freightright_find_shipments` · `freightright_list_shipments` · `freightright_get_shipment` · `freightright_list_shipment_events` | Track what is already moving — legs, milestones, containers with their contents and terminal state — and what changed, as a feed |
 | **A shipment's billing, customs and documents** | `freightright_get_shipment_billing` · `freightright_get_shipment_customs` · `freightright_list_invoices` · `freightright_list_shipment_documents` · `freightright_get_shipment_document` | Invoices and charge lines per currency, customs entries, the customer's invoices across shipments, documents with a download link that lives for minutes |
@@ -279,6 +279,10 @@ until its `valid_until`.
 No tool in this plugin books freight. The booking tools write a pending record and return a **confirmation link**.
 Only the customer, signed in to Freight Right in their own browser, can submit it there. Afterwards the assistant can
 read what they decided.
+
+A booking can carry its pickup and delivery details. The customer sees all of them on that page and ticks two
+statements no assistant can make for them. Once a booking is requested, the assistant can change those details
+while it is under review: that change is saved at once and books nothing.
 
 Even then, a submitted request is **under review**: Freight Right confirms the booking separately.
 

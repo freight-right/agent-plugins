@@ -158,6 +158,10 @@ Freight Right has priced it but not sent it — say the team has not sent an off
 in Shipment Manager; nothing here books it. A row with a `rate_request_id` can also be read with
 `freightright_get_rate_request`, which adds whether this connection may book it.
 
+Both reads show the pickup and delivery details on file for the booking (`booking_details`, with its `version`
+and whether it is `editable`) and a `booking_confirmation_token`. Giving them with a booking, and changing them
+with `freightright_update_booking_details` once a booking is requested, is the `booking-handoff` skill.
+
 A **quote number is an integer** shown in Shipment Manager and is **not** a quote request id: never pass one to
 `freightright_get_rate_request`.
 

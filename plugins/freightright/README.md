@@ -14,7 +14,7 @@ Then run `/mcp` and sign in with your Shipment Manager account.
 | `connection-and-billing` | What the connection may do, and which account is billed |
 | `instant-pricing` | Live carrier prices for FCL, LCL, AIR and LTL |
 | `quote-requests` | Prices only Freight Right's pricing team can give, requests to Freight Right's team, a quote's public link, and an administrator finishing a quote |
-| `booking-handoff` | Preparing a confirmation link, and reading what the customer decided |
+| `booking-handoff` | Preparing a confirmation link with its pickup and delivery details, reading what the customer decided, and changing the details of a requested booking |
 | `shipment-tracking` | Finding shipments and reading their milestones |
 
 The connector's own documentation is at <https://developers.freightright.com>. The full repository README covers the

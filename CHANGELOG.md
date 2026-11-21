@@ -5,14 +5,27 @@ All notable changes to this plugin are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-20
+
 ### Added
 
 - The customer's businesses: `freightright_list_business_profiles`, `freightright_create_business_profile` and
   `freightright_select_business_profile`, under the new `business_profiles:write` permission (listing rides on
   `bookings:write`). A prepared booking first asks who it bills; when the customer needs to add or choose a business
   it refuses with `business_profile_required` or `business_choice_required` and names the tool to call next.
-- The `booking-handoff` skill says how to handle those refusals. Contract, mocks and the eval tool list refreshed —
-  thirty-nine tools.
+- The `booking-handoff` skill says how to handle those refusals.
+- Pickup and delivery details on a booking. Both prepare tools take `pickup`, `delivery`, `references` and `load`;
+  Freight Right checks them before a link exists and names a field that is missing or not valid. The customer
+  sees every detail on the page and ticks two statements no assistant can make for them. A phone number is
+  required for each stop and an e-mail address is optional.
+- `freightright_update_booking_details`, under `bookings:write`: changes those details while a requested booking
+  is still under review. It is saved at once, with no confirmation page, and Freight Right's team is notified. A
+  customer's change carries the `version` and `booking_confirmation_token` as read and both statements; a Freight
+  Right administrator's is a staff entry, never the customer's confirmation.
+- `freightright_get_quote` and `freightright_get_rate_request` show `booking_details` and the
+  `booking_confirmation_token`.
+- The `booking-handoff` skill covers giving and changing the details. Contract, mocks and the eval tool list
+  refreshed: forty tools.
 
 ## [0.2.3] - 2026-11-10
 
