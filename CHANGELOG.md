@@ -5,6 +5,15 @@ All notable changes to this plugin are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- The kind of place at each door and the US delivery service level, on `freightright_get_instant_rates`,
+  `freightright_preview_rate_request` and `freightright_submit_rate_request`: `pickup_location_type`,
+  `delivery_location_type` and `delivery_service_level`, with the rules of the Shipment Manager quote form. A place
+  adds what it stands for (a school's limited access, a home's appointment) and an accessorial it does not take is
+  refused with the reason. A home delivery carrier's offer names its level and what that level includes. Contract,
+  mocks and the eval tool list refreshed; still forty tools.
+
 ## [0.3.0] - 2026-11-20
 
 ### Added
