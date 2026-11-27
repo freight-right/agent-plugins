@@ -1036,7 +1036,7 @@
     },
     {
       "name": "freightright_get_instant_rates",
-      "description": "Price ONE lane and cargo now: ocean FCL or LCL, AIR, or LTL trucking (US and Canada). Carriers are asked live, so an answer can take up to a minute. A new price check uses one unit of the customer's monthly allowance (freightright_get_account shows it); repeating an IDENTICAL request for the same billing account reuses the running or retained check and uses no further unit — the answer says which happened in `served_from`. Call it when the user wants prices, once per lane and cargo, never to explore. If pricing takes longer than this call can wait, the answer is `status: PRICING` with a `pricing_id`: collect the offers with freightright_get_rate_offers, do not price again. Required per mode — FCL: `containers` and `direction`; LCL and AIR: `pieces` or `totals`, and `direction`; LTL: `pieces`, door to door. A location is a PORT (UN/LOCODE or IATA `code`) or a DOOR (`postal_code` + `country_code`). Offers are sell prices, cheapest first, each with what it does not include and until when it is valid; an offer is not a booking. FTL and anything the API cannot price instantly needs a quote request. Changes nothing in the customer's account.",
+      "description": "Price ONE lane and cargo now: ocean FCL or LCL, AIR, or LTL trucking (US and Canada). Carriers are asked live, so an answer can take up to a minute. A new price check uses one unit of the customer's monthly allowance (freightright_get_account shows it); repeating an IDENTICAL request for the same billing account reuses the running or retained check and uses no further unit — the answer says which happened in `served_from`. Call it when the user wants prices, once per lane and cargo, never to explore. If pricing takes longer than this call can wait, the answer is `status: PRICING` with a `pricing_id`: collect the offers with freightright_get_rate_offers, do not price again. Required per mode — FCL: `containers` and `direction`; LCL and AIR: `pieces` or `totals`, and `direction`; LTL: `pieces`, door to door. A location is a PORT (UN/LOCODE or IATA `code`) or a DOOR (`postal_code` + `country_code`). Offers are sell prices, cheapest first, each with what it does not include and until when it is valid; an offer is not a booking. When the customer says the goods are collected or delivered at a home, a school, a tradeshow, an airport or a container freight station, name it with `pickup_location_type` / `delivery_location_type`, and for a US home, business or school delivery ask which `delivery_service_level` they want: Freight Right adds what the place stands for and refuses an accessorial it does not take. A home delivery carrier's offer names its `delivery_service_level` and what it `included`. FTL and anything the API cannot price instantly needs a quote request. Changes nothing in the customer's account.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -1734,6 +1734,63 @@
             ],
             "default": null,
             "description": "Extra services where the goods are delivered; needs a DOOR destination. Same values as `pickup_accessorials`. FCL accepts RESIDENTIAL only."
+          },
+          "pickup_location_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "BUSINESS",
+                  "CFS",
+                  "RESIDENTIAL",
+                  "SCHOOL",
+                  "TRADESHOW"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "What kind of place the pickup is; needs a DOOR origin. Omit it for an ordinary commercial pickup — the request is then priced exactly as before. BUSINESS (a commercial pickup) · CFS (a container freight station) · RESIDENTIAL (a home — priced as a residential pickup) · SCHOOL (a school — limited access is added for you) · TRADESHOW (a tradeshow — the carrier is told it is one)."
+          },
+          "delivery_location_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "AIRPORT",
+                  "BUSINESS",
+                  "CFS",
+                  "RESIDENTIAL",
+                  "SCHOOL",
+                  "TRADESHOW"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "What kind of place the delivery is; needs a DOOR destination. Name it whenever the customer says the goods go to a home, a school, a tradeshow, an airport or a container freight station. AIRPORT (an airport — it unloads the freight, so it takes no LIFTGATE, INSIDE or LIMITED_ACCESS; by LTL only carriers that can be told it price it) · BUSINESS (a commercial delivery — to a US door it needs a `delivery_service_level`) · CFS (a container freight station — it unloads the freight, so it takes no LIFTGATE, INSIDE or LIMITED_ACCESS) · RESIDENTIAL (a home — residential and an appointment are priced; to a US door it needs a `delivery_service_level`) · SCHOOL (a school — limited access is added for you; to a US door it needs a `delivery_service_level`) · TRADESHOW (a tradeshow — its own charge, so it takes no LIMITED_ACCESS; by LTL only carriers that can be told it price it). An accessorial the place does not take is refused, never dropped."
+          },
+          "delivery_service_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "DEFAULT",
+                  "CURBSIDE",
+                  "ROOM_OF_CHOICE",
+                  "WHITE_GLOVE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "How far the goods go at a US delivery. REQUIRED for LTL, LCL and AIR when `delivery_location_type` is RESIDENTIAL (any level), BUSINESS or SCHOOL (DEFAULT or CURBSIDE) at a US DOOR; refused anywhere else. Ask the customer which they want rather than guess. DEFAULT (back of the truck — the receiver has a dock and no liftgate is used) · CURBSIDE (to the curb or into the garage — a liftgate is added) · ROOM_OF_CHOICE (delivered to the room the customer chooses — a home only; priced instantly only from a US door to a US home by LTL, anywhere else ask for a quote request) · WHITE_GLOVE (room of choice plus 30 minutes of light assembly — a home only; priced instantly only from a US door to a US home by LTL, anywhere else ask for a quote request). An offer of a home delivery carrier names the level it delivers and what that level includes."
           },
           "billing_organization_id": {
             "anyOf": [
@@ -4325,6 +4382,63 @@
             "default": null,
             "description": "Extra services where the goods are delivered; needs a DOOR destination. Same values as `pickup_accessorials`. FCL accepts RESIDENTIAL only."
           },
+          "pickup_location_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "BUSINESS",
+                  "CFS",
+                  "RESIDENTIAL",
+                  "SCHOOL",
+                  "TRADESHOW"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "What kind of place the pickup is; needs a DOOR origin. Omit it for an ordinary commercial pickup — the request is then priced exactly as before. BUSINESS (a commercial pickup) · CFS (a container freight station) · RESIDENTIAL (a home — priced as a residential pickup) · SCHOOL (a school — limited access is added for you) · TRADESHOW (a tradeshow — the carrier is told it is one)."
+          },
+          "delivery_location_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "AIRPORT",
+                  "BUSINESS",
+                  "CFS",
+                  "RESIDENTIAL",
+                  "SCHOOL",
+                  "TRADESHOW"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "What kind of place the delivery is; needs a DOOR destination. Name it whenever the customer says the goods go to a home, a school, a tradeshow, an airport or a container freight station. AIRPORT (an airport — it unloads the freight, so it takes no LIFTGATE, INSIDE or LIMITED_ACCESS; by LTL only carriers that can be told it price it) · BUSINESS (a commercial delivery — to a US door it needs a `delivery_service_level`) · CFS (a container freight station — it unloads the freight, so it takes no LIFTGATE, INSIDE or LIMITED_ACCESS) · RESIDENTIAL (a home — residential and an appointment are priced; to a US door it needs a `delivery_service_level`) · SCHOOL (a school — limited access is added for you; to a US door it needs a `delivery_service_level`) · TRADESHOW (a tradeshow — its own charge, so it takes no LIMITED_ACCESS; by LTL only carriers that can be told it price it). An accessorial the place does not take is refused, never dropped."
+          },
+          "delivery_service_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "DEFAULT",
+                  "CURBSIDE",
+                  "ROOM_OF_CHOICE",
+                  "WHITE_GLOVE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "How far the goods go at a US delivery. REQUIRED for LTL, LCL and AIR when `delivery_location_type` is RESIDENTIAL (any level), BUSINESS or SCHOOL (DEFAULT or CURBSIDE) at a US DOOR; refused anywhere else. Ask the customer which they want rather than guess. DEFAULT (back of the truck — the receiver has a dock and no liftgate is used) · CURBSIDE (to the curb or into the garage — a liftgate is added) · ROOM_OF_CHOICE (delivered to the room the customer chooses — a home only; priced instantly only from a US door to a US home by LTL, anywhere else ask for a quote request) · WHITE_GLOVE (room of choice plus 30 minutes of light assembly — a home only; priced instantly only from a US door to a US home by LTL, anywhere else ask for a quote request). An offer of a home delivery carrier names the level it delivers and what that level includes."
+          },
           "rate_call_id": {
             "anyOf": [
               {
@@ -4565,7 +4679,7 @@
     },
     {
       "name": "freightright_submit_rate_request",
-      "description": "Ask Freight Right to quote a shipment: our pricing team is notified and the customer gets a confirmation e-mail. Use it when there is no instant price (full truckload, Mexico trucking, a lane or cargo the instant rates do not cover) or when the user wants our team to look at it — and only when the user has asked for it: WHETHER YOUR USER IS ASKED TO CONFIRM BEFORE THIS IS SENT DEPENDS ON THEIR ASSISTANT SETTINGS, NOT ON FREIGHT RIGHT. Show freightright_preview_rate_request first if you want them to see it. Give either the shipment (`mode`, `origin`, `destination`, cargo) or the `rate_call_id` of an earlier price check. Sending the identical request again within 30 days returns the first one instead of creating a second; change the note to ask for something different. The answer is PENDING: read it later with freightright_get_rate_request.",
+      "description": "Ask Freight Right to quote a shipment: our pricing team is notified and the customer gets a confirmation e-mail. Use it when there is no instant price (full truckload, Mexico trucking, a lane or cargo the instant rates do not cover, Room of choice or White glove off a US-to-US LTL lane) or when the user wants our team to look at it — and only when the user has asked for it: WHETHER YOUR USER IS ASKED TO CONFIRM BEFORE THIS IS SENT DEPENDS ON THEIR ASSISTANT SETTINGS, NOT ON FREIGHT RIGHT. Show freightright_preview_rate_request first if you want them to see it. Give either the shipment (`mode`, `origin`, `destination`, cargo) or the `rate_call_id` of an earlier price check. Sending the identical request again within 30 days returns the first one instead of creating a second; change the note to ask for something different. The answer is PENDING: read it later with freightright_get_rate_request.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -5288,6 +5402,63 @@
             ],
             "default": null,
             "description": "Extra services where the goods are delivered; needs a DOOR destination. Same values as `pickup_accessorials`. FCL accepts RESIDENTIAL only."
+          },
+          "pickup_location_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "BUSINESS",
+                  "CFS",
+                  "RESIDENTIAL",
+                  "SCHOOL",
+                  "TRADESHOW"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "What kind of place the pickup is; needs a DOOR origin. Omit it for an ordinary commercial pickup — the request is then priced exactly as before. BUSINESS (a commercial pickup) · CFS (a container freight station) · RESIDENTIAL (a home — priced as a residential pickup) · SCHOOL (a school — limited access is added for you) · TRADESHOW (a tradeshow — the carrier is told it is one)."
+          },
+          "delivery_location_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "AIRPORT",
+                  "BUSINESS",
+                  "CFS",
+                  "RESIDENTIAL",
+                  "SCHOOL",
+                  "TRADESHOW"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "What kind of place the delivery is; needs a DOOR destination. Name it whenever the customer says the goods go to a home, a school, a tradeshow, an airport or a container freight station. AIRPORT (an airport — it unloads the freight, so it takes no LIFTGATE, INSIDE or LIMITED_ACCESS; by LTL only carriers that can be told it price it) · BUSINESS (a commercial delivery — to a US door it needs a `delivery_service_level`) · CFS (a container freight station — it unloads the freight, so it takes no LIFTGATE, INSIDE or LIMITED_ACCESS) · RESIDENTIAL (a home — residential and an appointment are priced; to a US door it needs a `delivery_service_level`) · SCHOOL (a school — limited access is added for you; to a US door it needs a `delivery_service_level`) · TRADESHOW (a tradeshow — its own charge, so it takes no LIMITED_ACCESS; by LTL only carriers that can be told it price it). An accessorial the place does not take is refused, never dropped."
+          },
+          "delivery_service_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "DEFAULT",
+                  "CURBSIDE",
+                  "ROOM_OF_CHOICE",
+                  "WHITE_GLOVE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "How far the goods go at a US delivery. REQUIRED for LTL, LCL and AIR when `delivery_location_type` is RESIDENTIAL (any level), BUSINESS or SCHOOL (DEFAULT or CURBSIDE) at a US DOOR; refused anywhere else. Ask the customer which they want rather than guess. DEFAULT (back of the truck — the receiver has a dock and no liftgate is used) · CURBSIDE (to the curb or into the garage — a liftgate is added) · ROOM_OF_CHOICE (delivered to the room the customer chooses — a home only; priced instantly only from a US door to a US home by LTL, anywhere else ask for a quote request) · WHITE_GLOVE (room of choice plus 30 minutes of light assembly — a home only; priced instantly only from a US door to a US home by LTL, anywhere else ask for a quote request). An offer of a home delivery carrier names the level it delivers and what that level includes."
           },
           "rate_call_id": {
             "anyOf": [
